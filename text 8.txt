@@ -1,0 +1,2913 @@
+-- SNT HUB | Merged Build v1.2.2
+-- Base: deobfuscated.lua (6).txt
+-- Merged from: fetched.lua (2).txt
+-- Credits: SnowT Scripts (base), Naiko Scripts (merged features)
+
+local u1 = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
+
+local t1 = {
+	runAutoGen = false,
+	autoBlockActive = false,
+	antiStunActive = false,
+	antiSlowActive = false,
+	killerAuraActive = false,
+	slashAuraActive = false,
+	autoFriedChicken = false,
+	infiniteStamina = false,
+	noclip = false,
+	infiniteJump = false,
+	killAllActive = false,
+	killAllFly = false,
+	killAllTeleport = false,
+	autoRagingPace = false,
+	autoUnstableEye = false,
+	autoPizzaDelivery = false,
+	auto404Error = false,
+	autoClone = false,
+	autoCoinFlip = false,
+	autoRepairActive = false,
+	promptActivated = false,
+	teleportedToGenerator = false,
+	flying = false,
+	autoGetItemsActive = false,
+	autoGetMedkitActive = false,
+	autoGetBloxyColaActive = false,
+	itemAuraActive = false,
+	autoFarmActive = false,        -- no-teleport farm (near-standing)
+	autoFarmTpActive = false,      -- teleport farm
+	autoBlockNewActive = false,
+	autoBlockMethod = 1,
+	blockOnAnimation = true,
+	blockOnDistance = true,
+	blockOnHitbox = true
+}
+
+local t2 = {
+	lastAuraUse = 0,
+	lastFriedChickenTime = 0,
+	lastCloneTime = 0,
+	lastCoinFlipTime = 0,
+	lastEspUpdate = 0,
+	teleportTime = 0,
+	lastFarmAction = 0,
+	lastFarmTpAction = 0,
+	lastBlockFire = 0
+}
+
+local t3 = {
+	autoGenDelay = 2.5,
+	auraRange = 15,
+	auraCooldown = 1,
+	friedChickenThreshold = 50,
+	friedChickenCooldown = 5,
+	cloneCooldown = 10,
+	coinFlipCooldown = 5,
+	repairCheckInterval = 1,
+	teleportCooldown = 0.5,
+	killAllSpeed = 50,
+	flySpeed = 50,
+	espUpdateInterval = espUpdateInterval or 0.5,
+	itemAuraRange = 5,
+	itemPickupCooldown = 1,
+	highlightTransparency = 0.5,
+	OutlineTransparency = 0,
+	espTextSize = 14,
+	farmCooldown = 4,
+	farmMinCooldown = 1.5,
+	farmSpeedUpNoNear = false,
+	farmNearDistance = 32,
+	farmTpCooldown = 4,
+	farmTpMinCooldown = 1.5,
+	farmTpSpeedUpNoNear = false,
+	farmTpNearDistance = 32,
+	farmTpTeleportDelay = 0.5,
+	blockCooldown = 0.5,
+	blockRange = 15,
+	espDistanceUpdateInterval = 0.25,
+	espItemScanInterval = 1.5,
+	espGenScanInterval = 2,
+	espMaxDistance = 500,
+	blockAnimationIds = {
+		"rbxassetid://94067586317868",
+		"rbxassetid://107925328038675",
+		"rbxassetid://180436148",
+		"rbxassetid://180436334"
+	}
+}
+
+local u5 = data or {
+	autoGenDebounce = {},
+	repairDebounce = {},
+	skillCooldowns = {},
+	lastHealth = 0,
+	currentTarget = nil,
+	currentRepairGenerator = nil,
+	killerModel = nil,
+	isSurvivor = false,
+	currentFarmGenerator = nil,
+	farmFixActive = false,
+	currentFarmTpGenerator = nil,
+	farmTpFixActive = false,
+	farmTpTeleported = false,
+	farmTpPromptActivated = false,
+	farmTpTeleportTime = 0
+}
+
+local t4 = {
+	autoBlockConnection = nil,
+	antiStunConnection = nil,
+	antiSlowConnection = nil,
+	auraConnection = nil,
+	friedChickenConnection = nil,
+	staminaConnection = nil,
+	killAllConnection = nil,
+	cloneConnection = nil,
+	coinFlipConnection = nil,
+	autoRepairConnection = nil,
+	flightConn = nil,
+	bodyGyro = nil,
+	bodyVel = nil,
+	skillConnections = {},
+	autoGetItemsConnection = nil,
+	autoGetMedkitConnection = nil,
+	autoGetBloxyColaConnection = nil,
+	itemAuraConnection = nil,
+	autoFarmConnection = nil,
+	autoFarmTpConnection = nil,
+	autoBlockNewConnection = nil
+}
+
+local t5 = {}
+local u8 = espSettings or {
+	SurvivorsHighlight = false,
+	KillerHighlight = false,
+	ItemsHighlight = false,
+	GeneratorsHighlight = false,
+	SurvivorsNameESP = false,
+	KillerNameESP = false,
+	ItemsNameESP = false,
+	GeneratorsNameESP = false,
+	SurvivorsDistance = false,
+	KillerDistance = false,
+	ItemsDistance = false,
+	GeneratorsDistance = false
+}
+
+local _ = {
+	Survivor = Color3.fromRGB(0, 255, 0),
+	Killer = Color3.fromRGB(255, 0, 0),
+	Items = Color3.fromRGB(128, 0, 128),
+	Generator = Color3.fromRGB(0, 191, 255)
+}
+
+local t6 = { survivors = {}, killers = {}, items = {}, generators = {} }
+local t7 = { survivors = {}, killers = {}, items = {}, generators = {} }
+
+local espState = {
+	survivorMap = {},
+	killerMap = {},
+	itemMap = {},
+	generatorMap = {},
+	lastItemScan = 0,
+	lastGenScan = 0,
+	lastDistanceUpdate = 0,
+	itemList = {},
+	generatorList = {},
+	survivorList = {},
+	killerList = {}
+}
+
+local t8 = {
+	Chance = false, Taph = false, Dusekkar = false, Guest1337 = false,
+	TwoTime = false, Elliot = false, Shedletsky = false, Noli = false,
+	OneXOne = false, C001kidd = false, JohnDoe = false, Slasher = false
+}
+
+local t9 = {
+	Chance = { abilities = { "Shoot" }, targetKiller = true },
+	Taph = { abilities = { "SubspaceTripmine" }, targetKiller = true },
+	Dusekkar = { abilities = { "PlasmaBeam", "SpawnProtection" }, targetKiller = { PlasmaBeam = true, SpawnProtection = false } },
+	Guest1337 = { abilities = { "Block", "Charge", "Punch" }, targetKiller = true },
+	TwoTime = { abilities = { "Dagger", "Ritual" }, targetKiller = true },
+	Elliot = { abilities = { "ThrowPizza" }, targetKiller = false },
+	Shedletsky = { abilities = { "Slash" }, targetKiller = true },
+	Noli = { abilities = { "Stab", "VoidRush", "Nova" }, targetKiller = false },
+	OneXOne = { abilities = { "Slash", "Entanglement", "MassInfection" }, targetKiller = false },
+	C001kidd = { abilities = { "Punch", "CorruptNature", "WalkspeedOverride" }, targetKiller = false },
+	JohnDoe = { abilities = { "Slash", "CorruptEnergy", "DigitalFootprint" }, targetKiller = false },
+	Slasher = { abilities = { "Slash", "Behead", "GashingWound" }, targetKiller = false }
+}
+
+local t10 = {
+	Primary = Color3.fromHex("#3498db"),
+	Secondary = Color3.fromHex("#2c3e50"),
+	Accent = Color3.fromHex("#1abc9c"),
+	Dark = Color3.fromHex("#1a1a1a"),
+	Text = Color3.fromHex("#ecf0f1"),
+	Danger = Color3.fromHex("#e74c3c"),
+	LightGray = Color3.fromHex("#bdc3c7"),
+	DarkGray = Color3.fromHex("#7f8c8d"),
+	White = Color3.fromHex("#ffffff")
+}
+
+local t11 = {
+	Survivor = Color3.fromRGB(0, 255, 0),
+	Killer = Color3.fromRGB(255, 0, 0),
+	Medkit = Color3.fromRGB(0, 255, 0),
+	BloxyCola = Color3.fromRGB(88, 57, 39),
+	Generator = Color3.fromRGB(0, 191, 255)
+}
+
+u1.TransparencyValue = 0.15
+u1:AddTheme({
+	Name = "SNTTheme",
+	Accent = "#18181b",
+	Dialog = "#18181b",
+	Outline = "#FFFFFF",
+	Text = "#FFFFFF",
+	Placeholder = "#000000",
+	Background = "#0e0e10",
+	Button = "#52525b",
+	Icon = "#00f7ff"
+})
+u1:SetTheme("SNTTheme")
+
+local function u16(p1, p2, p3)
+	local s1 = ""
+	for i = 1, #p1 do
+		local v187 = (i - 1) / (#p1 - 1)
+		local v188 = math.floor((p2.R + (p3.R - p2.R) * v187) * 255)
+		local v189 = math.floor((p2.G + (p3.G - p2.G) * v187) * 255)
+		local v190 = math.floor((p2.B + (p3.B - p2.B) * v187) * 255)
+		s1 = s1 .. string.format("<font color=\"rgb(%d,%d,%d)\">%s</font>", v188, v189, v190, p1:sub(i, i))
+	end
+	return s1
+end
+
+local v17 = u1:CreateWindow({
+	Title = u16("SNT HUB", t10.Primary, t10.Text),
+	Icon = "infinity",
+	Author = u16("Forsaken", t10.LightGray, t10.Text),
+	Folder = "SNT_HUB",
+	Size = UDim2.fromOffset(400, 240),
+	Theme = "SNTTheme",
+	Background = u1:Gradient({
+		["0"] = { Color = t10.Dark, Transparency = 0 },
+		["50"] = { Color = t10.Secondary, Transparency = 0 },
+		["100"] = { Color = Color3.fromHex("#000000"), Transparency = 0 }
+	}, { Rotation = 150 }),
+	User = {
+		Enabled = true,
+		Anonymous = false,
+		Callback = function()
+			u1:Notify({ Title = "User Profile", Content = "This is you!", Duration = 3 })
+		end
+	},
+	SideBarWidth = 200,
+	ScrollBarEnabled = true,
+	CornerRadius = UDim.new(0, 14),
+	DropShadow = true
+})
+
+local v18 = v17:Section({ Title = u16("MAIN", t10.Primary, t10.Text), Opened = true })
+local v19 = v17:Section({ Title = u16("GAME", t10.Primary, t10.Text), Opened = true })
+local v20 = v17:Section({ Title = u16("SETTINGS", t10.Primary, t10.Text), Opened = true })
+
+local v21 = v18:Tab({ Title = "INFO", Icon = "info" })
+local v22 = v18:Tab({ Title = "SOCIALS", Icon = "users" })
+local v23 = v18:Tab({ Title = "CHARACTER", Icon = "user" })
+local v24 = v19:Tab({ Title = "ESP", Icon = "eye" })
+local v25 = v19:Tab({ Title = "AIMBOT", Icon = "axe" })
+local v26 = v19:Tab({ Title = "SURVIVOR", Icon = "plus" })
+local v27 = v19:Tab({ Title = "KILLER", Icon = "sword" })
+
+-- ===== FARM TABS (split) =====
+local vFarmNoTp = v19:Tab({ Title = "FARM (NO TP)", Icon = "zap" })
+local vFarmTp   = v19:Tab({ Title = "FARM (TELEPORT)", Icon = "move" })
+
+local vBlock = v19:Tab({ Title = "AUTO BLOCK", Icon = "shield" })
+local v28 = v20:Tab({ Title = "GAME SETTINGS", Icon = "settings" })
+local u29 = v20:Tab({ Title = "SERVER", Icon = "server" })
+
+-- =====
+-- Core helpers
+-- =====
+local function u30()
+	local v162 = false
+	u5.killerModel = nil
+	if workspace:FindFirstChild("Players") and workspace.Players:FindFirstChild("Killers") then
+		for _, child in pairs(workspace.Players.Killers:GetChildren()) do
+			if child:GetAttribute("Username") ~= game.Players.LocalPlayer.Name then
+				if child:GetAttribute("Username") and game.Players:FindFirstChild(child:GetAttribute("Username")) then
+					u5.killerModel = child
+				end
+			else
+				u5.killerModel = child
+				v162 = true
+			end
+		end
+		u5.isSurvivor = not v162
+	end
+end
+
+local function u31(p4)
+	local PlayerGui = game.Players.LocalPlayer.PlayerGui
+	if PlayerGui:FindFirstChild("MainUI") and PlayerGui.MainUI:FindFirstChild("AbilityContainer") then
+		local p4_2 = PlayerGui.MainUI.AbilityContainer:FindFirstChild(p4)
+		if p4_2 and p4_2:FindFirstChild("CooldownTime") then
+			return p4_2.CooldownTime.Text == ""
+		end
+	end
+	return false
+end
+
+game:GetService("RunService").Heartbeat:Connect(function() u30() end)
+
+local n1 = 0
+local timestamp = tick()
+local n2 = 0
+
+game:GetService("RunService").RenderStepped:Connect(function() n1 = n1 + 1 end)
+
+local function u35()
+	local timestamp2 = tick()
+	local v204 = timestamp2 - timestamp
+	if v204 >= 1 then
+		n2 = n1 / v204
+		n1 = 0
+		timestamp = timestamp2
+	end
+	return math.floor(n2)
+end
+
+-- INFO
+v21:Divider({ Title = u16("", t10.Primary, t10.Text) })
+v21:Section({ Title = u16("GAME INFO", t10.Primary, t10.Text) })
+v21:Divider({ Title = u16("", t10.Primary, t10.Text) })
+local u36 = v21:Paragraph({ Title = u16("FPS: --", t10.Primary, t10.Text), Desc = "Loading...", Image = "activity", ImageSize = 20, Color = "White" })
+v21:Divider({ Title = u16("", t10.Primary, t10.Text) })
+local u37 = v21:Paragraph({ Title = u16("PING: --", t10.Primary, t10.Text), Desc = "Loading...", Image = "signal", ImageSize = 20, Color = "White" })
+v21:Divider({ Title = u16("", t10.Primary, t10.Text) })
+local u38 = v21:Paragraph({ Title = u16("PLAYERS: --", t10.Primary, t10.Text), Desc = "Loading...", Image = "users", ImageSize = 20, Color = "White" })
+v21:Divider({ Title = u16("", t10.Primary, t10.Text) })
+local u39 = v21:Paragraph({ Title = u16("GAME: --", t10.Primary, t10.Text), Desc = "Loading...", Image = "gamepad", ImageSize = 20, Color = "White" })
+v21:Divider({ Title = u16("", t10.Primary, t10.Text) })
+
+local function u40()
+	local v192 = u35() or 0
+	local v193 = math.random(30, 120)
+	local v194 = #game:GetService("Players"):GetPlayers()
+	local MaxPlayers = game:GetService("Players").MaxPlayers
+	u36:SetTitle(u16("FPS: " .. v192, t10.Primary, v192 > 60 and t10.Accent or t10.Danger))
+	u36:SetDesc(v192 > 60 and "Excellent performance" or "Low performance")
+	u37:SetTitle(u16("PING: " .. v193 .. "ms", t10.Primary, v193 < 80 and t10.Accent or t10.Danger))
+	u37:SetDesc(v193 < 80 and "Good connection" or "High latency")
+	u38:SetTitle(u16("PLAYERS: " .. v194 .. "/" .. MaxPlayers, t10.Primary, t10.Text))
+	u38:SetDesc("Currently in server")
+	u39:SetTitle(u16(game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name, t10.Primary, t10.Text))
+	u39:SetDesc("Current game")
+end
+
+u40()
+spawn(function() while wait(1) do u40() end end)
+
+v21:Divider({ Title = u16("", t10.Primary, t10.Text) })
+v21:Section({ Title = u16("CHANGELOGS", t10.Primary, t10.Text) })
+v21:Divider({ Title = u16("", t10.Primary, t10.Text) })
+v21:Code({
+	Title = "Version: 1.2.2",
+	Code = " Changelogs:\n+ Split farm into 2 separate tabs:\n  - FARM (NO TP): completes generators you walk up to\n  - FARM (TELEPORT): teleports to unfinished generators and repairs\n+ Both farm tabs independent — run one, the other, or neither\n+ ESP optimizations from 1.2.1 retained\n+ Auto Block tab with 4 methods retained\n+ All other features retained"
+})
+
+-- SOCIALS
+v22:Divider({ Title = u16("", t10.Primary, t10.Text) })
+v22:Paragraph({ Title = u16("My TikTok", t10.Primary, t10.Text), Desc = "Please join to my TikTok account", Image = "video", ImageSize = 20, Color = "White" })
+v22:Button({ Title = u16("TikTok", t10.Primary, t10.Accent), Desc = "Copy link on my TikTok", Icon = "copy",
+	Callback = function()
+		setclipboard("https://www.tiktok.com/@snowt.scripts?_t=ZT-8yhrbnIUFLL&_r=1")
+		u1:Notify({ Title = "Link Copied", Content = "TikTok link copied to clipboard", Duration = 2 })
+	end })
+v22:Divider({ Title = u16("SURVIVOR SKILLS", t10.Primary, t10.Text) })
+v22:Paragraph({ Title = u16("YouTube", t10.Primary, t10.Text), Desc = "Check out my YouTube channel", Image = "youtube", ImageSize = 20, Color = "White" })
+v22:Button({ Title = u16("YouTube", t10.Primary, t10.Accent), Desc = "Copy link to my YouTube", Icon = "copy",
+	Callback = function()
+		setclipboard("https://youtube.com/@snowt_team?si=AmXDJj0qFQB-dzhv")
+		u1:Notify({ Title = "Link Copied", Content = "YouTube link copied to clipboard", Duration = 2 })
+	end })
+v22:Divider({ Title = u16("SURVIVOR SKILLS", t10.Primary, t10.Text) })
+v22:Paragraph({ Title = u16("Telegram", t10.Primary, t10.Text), Desc = "Join my Telegram channel", Image = "send", ImageSize = 20, Color = "White" })
+v22:Button({ Title = u16("Telegram", t10.Primary, t10.Accent), Desc = "Copy link to my Telegram", Icon = "copy",
+	Callback = function()
+		setclipboard("https://t.me/snowtscripts")
+		u1:Notify({ Title = "Link Copied", Content = "Telegram link copied to clipboard", Duration = 2 })
+	end })
+
+-- CHARACTER
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ContextActionService = game:GetService("ContextActionService")
+local n3 = 0
+local n4 = 0
+
+local function u46()
+	ContextActionService:UnbindAction("SNT_Flight_Up")
+	ContextActionService:UnbindAction("SNT_Flight_Down")
+	n4 = 0
+	n3 = 0
+end
+
+local function u47()
+	if not t1.flying then
+		t1.flying = true
+		local LocalPlayer = Players.LocalPlayer
+		local v352 = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+		local HumanoidRootPart = v352:WaitForChild("HumanoidRootPart")
+		local Humanoid = v352:FindFirstChildOfClass("Humanoid")
+		if Humanoid then
+			Humanoid.AutoRotate = false
+			t4.bodyGyro = Instance.new("BodyGyro")
+			t4.bodyGyro.P = 90000
+			t4.bodyGyro.MaxTorque = Vector3.new(9000000000, 9000000000, 9000000000)
+			t4.bodyGyro.CFrame = HumanoidRootPart.CFrame
+			t4.bodyGyro.Parent = HumanoidRootPart
+			t4.bodyVel = Instance.new("BodyVelocity")
+			t4.bodyVel.MaxForce = Vector3.new(9000000000, 9000000000, 9000000000)
+			t4.bodyVel.Velocity = Vector3.zero
+			t4.bodyVel.Parent = HumanoidRootPart
+			t4.flightConn = RunService.Heartbeat:Connect(function()
+				local CurrentCamera = workspace.CurrentCamera
+				local LookVector = CurrentCamera.CFrame.LookVector
+				local RightVector = CurrentCamera.CFrame.RightVector
+				local MoveDirection = Humanoid.MoveDirection
+				local v513 = MoveDirection:Dot(Vector3.new(LookVector.X, 0, LookVector.Z).Unit)
+				local v514 = MoveDirection:Dot(Vector3.new(RightVector.X, 0, RightVector.Z).Unit)
+				local n5 = 0
+				if MoveDirection.Magnitude > 0 then n5 = LookVector.Y * v513 end
+				local v516 = LookVector * v513 + RightVector * v514
+				local vector3 = Vector3.new(v516.X, n5, v516.Z)
+				if vector3.Magnitude > 1 then vector3 = vector3.Unit end
+				t4.bodyVel.Velocity = vector3 * t3.flySpeed
+				t4.bodyGyro.CFrame = CFrame.lookAt(HumanoidRootPart.Position, HumanoidRootPart.Position + LookVector, CurrentCamera.CFrame.UpVector)
+			end)
+			return
+		end
+		return
+	end
+end
+
+local function u48()
+	if t1.flying then
+		t1.flying = false
+		u46()
+		if t4.flightConn then t4.flightConn:Disconnect() t4.flightConn = nil end
+		if t4.bodyGyro then t4.bodyGyro:Destroy() t4.bodyGyro = nil end
+		if t4.bodyVel then t4.bodyVel:Destroy() t4.bodyVel = nil end
+		local Character = Players.LocalPlayer.Character
+		local v237 = Character and Character:FindFirstChildOfClass("Humanoid")
+		if v237 then v237.AutoRotate = true end
+		return
+	end
+end
+
+local function u49(p5)
+	t1.infiniteStamina = p5
+	local Sprinting = require(game.ReplicatedStorage.Systems.Character.Game.Sprinting)
+	if not t1.infiniteStamina then
+		if t4.staminaConnection then t4.staminaConnection:Disconnect() t4.staminaConnection = nil end
+		Sprinting.StaminaLossDisabled = nil
+	else
+		if t4.staminaConnection then t4.staminaConnection:Disconnect() end
+		t4.staminaConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.infiniteStamina then
+				function Sprinting.StaminaLossDisabled() return true end
+				return
+			end
+			t4.staminaConnection:Disconnect()
+			Sprinting.StaminaLossDisabled = nil
+		end)
+	end
+end
+
+local function u50()
+	if not t4.antiStunConnection then
+		t4.antiStunConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.antiStunActive then
+				local Character = game.Players.LocalPlayer.Character
+				if Character and Character:FindFirstChild("SpeedMultipliers") then
+					local Stunned = Character.SpeedMultipliers:FindFirstChild("Stunned")
+					if Stunned and Stunned.Value < 1 then Stunned.Value = 1 end
+				end
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u51()
+	if t4.antiStunConnection then t4.antiStunConnection:Disconnect() t4.antiStunConnection = nil end
+end
+
+local function u52()
+	if not t4.antiSlowConnection then
+		t4.antiSlowConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.antiSlowActive then
+				local Character = game.Players.LocalPlayer.Character
+				if Character and Character:FindFirstChild("SpeedMultipliers") then
+					for _, child in pairs(Character.SpeedMultipliers:GetChildren()) do
+						if child.Value < 1 then child.Value = 1 end
+					end
+				end
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u53()
+	if t4.antiSlowConnection then t4.antiSlowConnection:Disconnect() t4.antiSlowConnection = nil end
+end
+
+v23:Divider({ Title = u16("SURVIVOR SKILLS", t10.Primary, t10.Text) })
+v23:Toggle({ Title = u16("Noclip", t10.Primary, t10.Text), Value = t1.noclip,
+	Callback = function(p6)
+		t1.noclip = p6
+		if not p6 then
+			if _G.NoclipLoop then _G.NoclipLoop:Disconnect() end
+		else
+			_G.NoclipLoop = game:GetService("RunService").Stepped:Connect(function()
+				local Character = game:GetService("Players").LocalPlayer.Character
+				if Character then
+					for _, descendant in pairs(Character:GetDescendants()) do
+						if descendant:IsA("BasePart") then descendant.CanCollide = false end
+					end
+				end
+			end)
+		end
+	end })
+v23:Divider({ Title = u16("SURVIVOR SKILLS", t10.Primary, t10.Text) })
+v23:Toggle({ Title = u16("Infinite Jump", t10.Primary, t10.Text), Value = t1.infiniteJump,
+	Callback = function(p7)
+		t1.infiniteJump = p7
+		if not p7 then
+			if _G.InfiniteJumpConnection then _G.InfiniteJumpConnection:Disconnect() end
+		else
+			_G.InfiniteJumpConnection = game:GetService("UserInputService").JumpRequest:Connect(function()
+				local Humanoid = game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+				if Humanoid then Humanoid:ChangeState("Jumping") end
+			end)
+		end
+	end })
+v23:Divider({ Title = u16("SURVIVOR SKILLS", t10.Primary, t10.Text) })
+v23:Toggle({ Title = u16("Fly", t10.Primary, t10.Text), Desc = "Smooth camera-aligned flight (PC, Mobile, Gamepad)", Value = t1.flying,
+	Callback = function(p8) if not p8 then u48() else u47() end end })
+v23:Slider({ Title = u16("Fly Speed", t10.Primary, t10.Text), Desc = "Adjust flight speed",
+	Value = { Min = 5, Max = 150, Default = t3.flySpeed },
+	Callback = function(p9) t3.flySpeed = p9 end })
+v23:Divider({ Title = u16("SURVIVOR SKILLS", t10.Primary, t10.Text) })
+v23:Toggle({ Title = u16("Infinite Stamina", t10.Primary, t10.Text), Desc = "Never get tired while sprinting", Value = t1.infiniteStamina, Icon = "zap",
+	Callback = function(p10) u49(p10) end })
+v23:Divider({ Title = u16("ANTI FUNCTIONS", t10.Primary, t10.Text) })
+v23:Toggle({ Title = u16("Anti Stun", t10.Primary, t10.Text), Desc = "Never get stunned", Value = t1.antiStunActive, Icon = "zap-off",
+	Callback = function(p11) t1.antiStunActive = p11 if not p11 then u51() else u50() end end })
+v23:Divider({ Title = u16("ANTI FUNCTIONS", t10.Primary, t10.Text) })
+v23:Toggle({ Title = u16("Anti Slow", t10.Primary, t10.Text), Desc = "Never get slowed", Value = t1.antiSlowActive, Icon = "gauge",
+	Callback = function(p12) t1.antiSlowActive = p12 if not p12 then u53() else u52() end end })
+
+v17:CreateTopbarButton("theme-switcher", "moon", function()
+	u1:SetTheme(u1:GetCurrentTheme() == "Dark" and "Light" or "Dark")
+	u1:Notify({ Title = "Theme Changed", Content = "Current theme: " .. u1:GetCurrentTheme(), Duration = 2 })
+end, 990)
+
+-- =====
+-- SHARED FARM HELPERS
+-- =====
+local function FarmIsPlayersNear(Distance)
+	local LocalPlayer = Players.LocalPlayer
+	local LocalRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+	if LocalRoot then
+		for _, v in Players:GetPlayers() do
+			if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+				if (v.Character.HumanoidRootPart.Position - LocalRoot.Position).Magnitude < Distance then
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
+
+local function FarmGetGenerators()
+	local t16 = {}
+	local InGame = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Ingame")
+	if InGame then
+		local GameMap = InGame:FindFirstChild("Map")
+		if GameMap then
+			for _, child in pairs(GameMap:GetChildren()) do
+				if child.Name == "Generator" and child:FindFirstChild("Main") then
+					table.insert(t16, child)
+				end
+			end
+		end
+	end
+	return t16
+end
+
+local function FarmGetProgress(Generator)
+	local Progress = Generator:FindFirstChild("Progress")
+	if Progress and Progress:IsA("NumberValue") then return Progress.Value end
+	return 0
+end
+
+local function FarmCompleteGenerator(Generator)
+	local Remotes = Generator:FindFirstChild("Remotes")
+	local Progress = Generator:FindFirstChild("Progress")
+	if not (Remotes and Progress) then return end
+	local RemoteEvent = Remotes:FindFirstChildOfClass("RemoteEvent")
+	if not RemoteEvent then return end
+	RemoteEvent:FireServer()
+end
+
+local function FarmGetGeneratorPos(Generator)
+	local Instances = Generator:FindFirstChild("Instances")
+	if Instances then
+		local Cube = Instances:FindFirstChild("Cube.001")
+		if Cube and Cube:IsA("BasePart") then return Cube.Position end
+	end
+	local Positions = Generator:FindFirstChild("Positions")
+	if Positions then
+		local Center = Positions:FindFirstChild("Center")
+		if Center and Center:IsA("BasePart") then return Center.Position end
+	end
+	local Main = Generator:FindFirstChild("Main")
+	if Main and Main:IsA("BasePart") then return Main.Position end
+	for _, d in pairs(Generator:GetDescendants()) do
+		if d:IsA("BasePart") then return d.Position end
+	end
+	return Vector3.new(0,0,0)
+end
+
+local function FarmGetNearestGenerator()
+	local localChar = Players.LocalPlayer.Character
+	local root = localChar and localChar:FindFirstChild("HumanoidRootPart")
+	if not root then return nil end
+	local best, bestDist = nil, math.huge
+	for _, gen in pairs(FarmGetGenerators()) do
+		if FarmGetProgress(gen) < 100 then
+			local pos = FarmGetGeneratorPos(gen)
+			if pos ~= Vector3.new(0,0,0) then
+				local d = (pos - root.Position).Magnitude
+				if d < bestDist then bestDist = d best = gen end
+			end
+		end
+	end
+	return best
+end
+
+local function FarmFirePrompt(Generator)
+	local Main = Generator:FindFirstChild("Main")
+	if not Main then return false end
+	local prompt = Main:FindFirstChild("Prompt")
+	if not prompt then
+		for _, d in pairs(Main:GetDescendants()) do
+			if d:IsA("ProximityPrompt") then prompt = d break end
+		end
+	end
+	if prompt and prompt:IsA("ProximityPrompt") then
+		fireproximityprompt(prompt)
+		return true
+	end
+	return false
+end
+
+local function FarmFireGeneratorRemote(Generator)
+	local Remotes = Generator:FindFirstChild("Remotes")
+	if Remotes then
+		local RE = Remotes:FindFirstChild("RE")
+		if RE and RE:IsA("RemoteEvent") then
+			local ok = pcall(function() RE:FireServer() end)
+			return ok
+		end
+	end
+	return false
+end
+
+-- =====
+-- FARM (NO TELEPORT) TAB
+-- =====
+local function uFarmStart()
+	if t1.autoFarmActive then return end
+	t1.autoFarmActive = true
+
+	t4.autoFarmConnection = RunService.Heartbeat:Connect(function()
+		if not t1.autoFarmActive then return end
+		local LocalPlayer = Players.LocalPlayer
+		local LocalCharacter = LocalPlayer.Character
+		local LocalRoot = LocalCharacter and LocalCharacter:FindFirstChild("HumanoidRootPart")
+		if not LocalRoot then return end
+
+		for _, Generator in FarmGetGenerators() do
+			local Main = Generator:FindFirstChild("Main")
+			if not Main then continue end
+			if (Main.Position - LocalRoot.Position).Magnitude < 6.7 then
+				if not u5.currentFarmGenerator then
+					u5.currentFarmGenerator = Generator
+					u5.farmFixActive = true
+					task.spawn(function()
+						while t1.autoFarmActive do
+							if not u5.currentFarmGenerator or not u5.currentFarmGenerator.Parent then break end
+							if FarmGetProgress(u5.currentFarmGenerator) >= 100 then break end
+							if (u5.currentFarmGenerator:FindFirstChild("Main").Position - LocalRoot.Position).Magnitude > 8 then break end
+							local isNear = FarmIsPlayersNear(t3.farmNearDistance)
+							local baseCD = t3.farmCooldown
+							local GenCD = (not isNear and t3.farmSpeedUpNoNear and t3.farmMinCooldown) or
+								(baseCD + (math.random() - 0.5) * 0.2 * baseCD)
+							task.wait(GenCD)
+							if not t1.autoFarmActive then break end
+							if not u5.currentFarmGenerator or not u5.currentFarmGenerator.Parent then break end
+							FarmCompleteGenerator(u5.currentFarmGenerator)
+						end
+						u5.farmFixActive = false
+						u5.currentFarmGenerator = nil
+					end)
+				end
+				break
+			end
+		end
+	end)
+end
+
+local function uFarmStop()
+	t1.autoFarmActive = false
+	u5.currentFarmGenerator = nil
+	u5.farmFixActive = false
+	if t4.autoFarmConnection then
+		t4.autoFarmConnection:Disconnect()
+		t4.autoFarmConnection = nil
+	end
+end
+
+vFarmNoTp:Divider({ Title = u16("FARM (NO TELEPORT)", t10.Primary, t10.Text) })
+vFarmNoTp:Section({ Title = u16("STAND-NEAR GENERATOR FARM", t10.Primary, t10.Text) })
+vFarmNoTp:Toggle({
+	Title = u16("Auto Farm Generators (No TP)", t10.Primary, t10.Text),
+	Desc = "Completes generators you are standing near. No teleporting.",
+	Value = false,
+	Icon = "zap",
+	Callback = function(p)
+		if not p then
+			uFarmStop()
+		else
+			local LocalPlayer = Players.LocalPlayer
+			if LocalPlayer.Character and LocalPlayer.Character.Parent and LocalPlayer.Character.Parent.Name == "Killers" then
+				u1:Notify({ Title = "Error", Content = "You must be a survivor", Duration = 3 })
+				return false
+			end
+			uFarmStart()
+		end
+	end
+})
+vFarmNoTp:Slider({
+	Title = u16("Farm Cooldown", t10.Primary, t10.Text),
+	Desc = "Base cooldown between generator completions",
+	Step = 0.25,
+	Value = { Min = 1.5, Max = 8, Default = t3.farmCooldown },
+	Callback = function(v) t3.farmCooldown = v end
+})
+vFarmNoTp:Toggle({
+	Title = u16("Speed Up When Nobody Near", t10.Primary, t10.Text),
+	Desc = "Drops cooldown to minimum when no player within range",
+	Value = false,
+	Icon = "zap",
+	Callback = function(v) t3.farmSpeedUpNoNear = v end
+})
+vFarmNoTp:Slider({
+	Title = u16("Near Detection Range", t10.Primary, t10.Text),
+	Desc = "Distance to check for nearby players",
+	Step = 1,
+	Value = { Min = 10, Max = 100, Default = t3.farmNearDistance },
+	Callback = function(v) t3.farmNearDistance = v end
+})
+vFarmNoTp:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+vFarmNoTp:Paragraph({
+	Title = u16("How it works", t10.Primary, t10.Text),
+	Desc = "Walk up to a generator (within ~6.7 studs). The script fires its RemoteEvent on a randomized cooldown until it reaches 100%. No teleporting — you stay where you are. If you walk away, farming pauses.",
+	Image = "info",
+	ImageSize = 20,
+	Color = "White"
+})
+
+-- =====
+-- FARM (TELEPORT) TAB
+-- =====
+local function FarmTpSelectGenerator()
+	local localChar = Players.LocalPlayer.Character
+	local root = localChar and localChar:FindFirstChild("HumanoidRootPart")
+	if not root then return nil end
+	local best, bestDist = nil, math.huge
+	for _, gen in pairs(FarmGetGenerators()) do
+		if FarmGetProgress(gen) < 100 then
+			local pos = FarmGetGeneratorPos(gen)
+			if pos ~= Vector3.new(0,0,0) then
+				local d = (pos - root.Position).Magnitude
+				if d < bestDist then bestDist = d best = gen end
+			end
+		end
+	end
+	return best
+end
+
+local function FarmTpTeleportTo(pos)
+	local localChar = Players.LocalPlayer.Character
+	local root = localChar and localChar:FindFirstChild("HumanoidRootPart")
+	if not root then return false end
+	root.CFrame = CFrame.new(pos + Vector3.new(0, 0, 0))
+	return true
+end
+
+local function uFarmTpStart()
+	if t1.autoFarmTpActive then return end
+	t1.autoFarmTpActive = true
+
+	t4.autoFarmTpConnection = RunService.Heartbeat:Connect(function()
+		if not t1.autoFarmTpActive then return end
+
+		local localChar = Players.LocalPlayer.Character
+		local root = localChar and localChar:FindFirstChild("HumanoidRootPart")
+		if not root then return end
+
+		-- reset stale target
+		if u5.currentFarmTpGenerator and (not u5.currentFarmTpGenerator.Parent or FarmGetProgress(u5.currentFarmTpGenerator) >= 100) then
+			u5.currentFarmTpGenerator = nil
+			u5.farmTpTeleported = false
+			u5.farmTpPromptActivated = false
+			u5.farmTpTeleportTime = 0
+		end
+
+		if not u5.currentFarmTpGenerator then
+			u5.currentFarmTpGenerator = FarmTpSelectGenerator()
+			if not u5.currentFarmTpGenerator then uFarmTpStop() return end
+			u5.farmTpTeleported = false
+			u5.farmTpPromptActivated = false
+			u5.farmTpTeleportTime = 0
+		end
+
+		-- teleport once
+		if not u5.farmTpTeleported then
+			local pos = FarmGetGeneratorPos(u5.currentFarmTpGenerator)
+			if pos ~= Vector3.new(0,0,0) then
+				FarmTpTeleportTo(pos)
+				u5.farmTpTeleported = true
+				u5.farmTpTeleportTime = tick()
+			end
+		end
+
+		-- fire prompt once after teleport settle
+		if not u5.farmTpPromptActivated and u5.farmTpTeleported and (tick() - u5.farmTpTeleportTime) >= t3.farmTpTeleportDelay then
+			FarmFirePrompt(u5.currentFarmTpGenerator)
+			u5.farmTpPromptActivated = true
+		end
+
+		-- fire generator remote on cooldown
+		local isNear = FarmIsPlayersNear(t3.farmTpNearDistance)
+		local baseCD = t3.farmTpCooldown
+		local GenCD = (not isNear and t3.farmTpSpeedUpNoNear and t3.farmTpMinCooldown) or
+			(baseCD + (math.random() - 0.5) * 0.2 * baseCD)
+
+		if tick() - (t2.lastFarmTpAction or 0) >= GenCD then
+			t2.lastFarmTpAction = tick()
+			if u5.currentFarmTpGenerator and u5.currentFarmTpGenerator.Parent then
+				FarmFireGeneratorRemote(u5.currentFarmTpGenerator)
+			end
+		end
+
+		-- completed
+		if u5.currentFarmTpGenerator and FarmGetProgress(u5.currentFarmTpGenerator) >= 100 then
+			task.wait(t3.teleportCooldown)
+			u5.currentFarmTpGenerator = nil
+			u5.farmTpTeleported = false
+			u5.farmTpPromptActivated = false
+			u5.farmTpTeleportTime = 0
+		end
+
+		task.wait(t3.repairCheckInterval)
+	end)
+end
+
+local function uFarmTpStop()
+	t1.autoFarmTpActive = false
+	u5.currentFarmTpGenerator = nil
+	u5.farmTpFixActive = false
+	u5.farmTpTeleported = false
+	u5.farmTpPromptActivated = false
+	u5.farmTpTeleportTime = 0
+	if t4.autoFarmTpConnection then
+		t4.autoFarmTpConnection:Disconnect()
+		t4.autoFarmTpConnection = nil
+	end
+end
+
+vFarmTp:Divider({ Title = u16("FARM (TELEPORT)", t10.Primary, t10.Text) })
+vFarmTp:Section({ Title = u16("TELEPORT FARM", t10.Primary, t10.Text) })
+vFarmTp:Toggle({
+	Title = u16("Auto Farm Generators (Teleport)", t10.Primary, t10.Text),
+	Desc = "Teleports to each unfinished generator and completes it",
+	Value = false,
+	Icon = "move",
+	Callback = function(p)
+		if not p then
+			uFarmTpStop()
+		else
+			local LocalPlayer = Players.LocalPlayer
+			if LocalPlayer.Character and LocalPlayer.Character.Parent and LocalPlayer.Character.Parent.Name == "Killers" then
+				u1:Notify({ Title = "Error", Content = "You must be a survivor", Duration = 3 })
+				return false
+			end
+			uFarmTpStart()
+		end
+	end
+})
+vFarmTp:Slider({
+	Title = u16("Farm Cooldown", t10.Primary, t10.Text),
+	Desc = "Base cooldown between generator remote fires",
+	Step = 0.25,
+	Value = { Min = 1.5, Max = 8, Default = t3.farmTpCooldown },
+	Callback = function(v) t3.farmTpCooldown = v end
+})
+vFarmTp:Toggle({
+	Title = u16("Speed Up When Nobody Near", t10.Primary, t10.Text),
+	Desc = "Drops cooldown to minimum when no player within range",
+	Value = false,
+	Icon = "zap",
+	Callback = function(v) t3.farmTpSpeedUpNoNear = v end
+})
+vFarmTp:Slider({
+	Title = u16("Near Detection Range", t10.Primary, t10.Text),
+	Desc = "Distance to check for nearby players",
+	Step = 1,
+	Value = { Min = 10, Max = 100, Default = t3.farmTpNearDistance },
+	Callback = function(v) t3.farmTpNearDistance = v end
+})
+vFarmTp:Slider({
+	Title = u16("Prompt Delay After Teleport", t10.Primary, t10.Text),
+	Desc = "Wait this long after teleport before firing prompt (seconds)",
+	Step = 0.1,
+	Value = { Min = 0.1, Max = 2, Default = t3.farmTpTeleportDelay },
+	Callback = function(v) t3.farmTpTeleportDelay = v end
+})
+vFarmTp:Slider({
+	Title = u16("Repair Check Interval", t10.Primary, t10.Text),
+	Desc = "Loop delay between farm ticks (seconds)",
+	Step = 0.1,
+	Value = { Min = 0.25, Max = 5, Default = t3.repairCheckInterval },
+	Callback = function(v) t3.repairCheckInterval = v end
+})
+vFarmTp:Slider({
+	Title = u16("Post-Complete Cooldown", t10.Primary, t10.Text),
+	Desc = "Wait after completing a generator before moving to next",
+	Step = 0.1,
+	Value = { Min = 0.1, Max = 2, Default = t3.teleportCooldown },
+	Callback = function(v) t3.teleportCooldown = v end
+})
+vFarmTp:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+vFarmTp:Paragraph({
+	Title = u16("How it works", t10.Primary, t10.Text),
+	Desc = "Selects nearest unfinished generator, teleports your root to it, fires its ProximityPrompt once, then fires its generator RemoteEvent on a randomized cooldown until 100%. Automatically moves to next generator when done.",
+	Image = "info",
+	ImageSize = 20,
+	Color = "White"
+})
+
+-- =====
+-- AUTO BLOCK TAB
+-- =====
+local function BlockCheckCooldown()
+	if tick() - t2.lastBlockFire >= t3.blockCooldown then
+		t2.lastBlockFire = tick()
+		return true
+	end
+	return false
+end
+
+local function BlockFire()
+	local RemoteEvent = game.ReplicatedStorage.Modules.Network.RemoteEvent
+	pcall(function() RemoteEvent:FireServer("UseActorAbility", "Block") end)
+end
+
+local function BlockMethodAnimation()
+	if not t1.blockOnAnimation then return end
+	if not u5.isSurvivor or not u5.killerModel then return end
+	local Character = Players.LocalPlayer.Character
+	if not Character or not Character:FindFirstChild("HumanoidRootPart") then return end
+	if not u5.killerModel:FindFirstChild("HumanoidRootPart") then return end
+	if (Character.HumanoidRootPart.Position - u5.killerModel.HumanoidRootPart.Position).Magnitude > t3.blockRange then return end
+	local Humanoid = u5.killerModel:FindFirstChildOfClass("Humanoid")
+	if not Humanoid then return end
+	local Animator = Humanoid:FindFirstChildOfClass("Animator")
+	if not Animator then return end
+	for _, v in pairs(Animator:GetPlayingAnimationTracks()) do
+		if v.Animation and table.find(t3.blockAnimationIds, v.Animation.AnimationId) and u31("Block") then
+			if BlockCheckCooldown() then BlockFire() end
+			return
+		end
+	end
+end
+
+local function BlockMethodHitbox()
+	if not t1.blockOnHitbox then return end
+	if not u5.isSurvivor or not u5.killerModel then return end
+	local Character = Players.LocalPlayer.Character
+	if not Character then return end
+	local SelfHitbox = Character:FindFirstChild("QueryHitbox")
+	local KillerHitbox = u5.killerModel:FindFirstChild("QueryHitbox")
+	if not SelfHitbox or not KillerHitbox then return end
+	local Params = OverlapParams.new()
+	Params.FilterType = Enum.RaycastFilterType.Include
+	Params.MaxParts = 1
+	Params.FilterDescendantsInstances = { SelfHitbox }
+	local Part = Instance.new("Part")
+	Part.Name = "SNT_BlockDetect"
+	Part.Size = Vector3.new(5.2, 6, 5.65) * 2.2
+	Part.CFrame = KillerHitbox.CFrame * CFrame.new(0, 0, -3.5)
+	Part.CanCollide = false
+	Part.Anchored = true
+	Part.CastShadow = false
+	Part.Transparency = 1
+	Part.Parent = workspace
+	local Hit = workspace:GetPartsInPart(Part, Params)
+	Part:Destroy()
+	if #Hit > 0 and u31("Block") then
+		if BlockCheckCooldown() then BlockFire() end
+	end
+end
+
+local function BlockMethodDistance()
+	if not t1.blockOnDistance then return end
+	if not u5.isSurvivor or not u5.killerModel then return end
+	local Character = Players.LocalPlayer.Character
+	if not Character or not Character:FindFirstChild("HumanoidRootPart") then return end
+	if not u5.killerModel:FindFirstChild("HumanoidRootPart") then return end
+	local dist = (Character.HumanoidRootPart.Position - u5.killerModel.HumanoidRootPart.Position).Magnitude
+	if dist <= 8 and u31("Block") then
+		if BlockCheckCooldown() then BlockFire() end
+	end
+end
+
+local function BlockMethodProximityScan()
+	if not u5.isSurvivor or not u5.killerModel then return end
+	local Character = Players.LocalPlayer.Character
+	if not Character or not Character:FindFirstChild("HumanoidRootPart") then return end
+	if not u5.killerModel:FindFirstChild("HumanoidRootPart") then return end
+	if (Character.HumanoidRootPart.Position - u5.killerModel.HumanoidRootPart.Position).Magnitude > 12 then return end
+	local Humanoid = u5.killerModel:FindFirstChildOfClass("Humanoid")
+	if not Humanoid then return end
+	local Animator = Humanoid:FindFirstChildOfClass("Animator")
+	if not Animator then return end
+	local tracks = Animator:GetPlayingAnimationTracks()
+	if #tracks > 0 then
+		for _, track in pairs(tracks) do
+			local id = track.Animation and track.Animation.AnimationId
+			if id and (id:find("slash") or id:find("Slash") or id:find("attack") or id:find("Attack") or id:find("swing") or id:find("Swing")) then
+				if u31("Block") and BlockCheckCooldown() then BlockFire() end
+				return
+			end
+		end
+	end
+end
+
+local function uBlockStart()
+	if t1.autoBlockNewActive then return end
+	t1.autoBlockNewActive = true
+	t4.autoBlockNewConnection = RunService.Heartbeat:Connect(function()
+		if not t1.autoBlockNewActive then return end
+		if t1.autoBlockMethod == 1 then BlockMethodAnimation()
+		elseif t1.autoBlockMethod == 2 then BlockMethodHitbox()
+		elseif t1.autoBlockMethod == 3 then BlockMethodDistance()
+		elseif t1.autoBlockMethod == 4 then BlockMethodProximityScan() end
+	end)
+end
+
+local function uBlockStop()
+	t1.autoBlockNewActive = false
+	if t4.autoBlockNewConnection then t4.autoBlockNewConnection:Disconnect() t4.autoBlockNewConnection = nil end
+end
+
+vBlock:Divider({ Title = u16("AUTO BLOCK", t10.Primary, t10.Text) })
+vBlock:Section({ Title = u16("BLOCK METHODS", t10.Primary, t10.Text) })
+vBlock:Toggle({ Title = u16("Enable Auto Block", t10.Primary, t10.Text), Desc = "Automatically blocks incoming killer attacks", Value = false, Icon = "shield",
+	Callback = function(v) if not v then uBlockStop() else uBlockStart() end end })
+vBlock:Dropdown({
+	Title = u16("Block Method", t10.Primary, t10.Text),
+	Desc = "Choose detection method",
+	Values = { "1 - Animation ID Match", "2 - Hitbox Overlap", "3 - Distance Proactive", "4 - Proximity + Scan" },
+	Value = "1 - Animation ID Match",
+	Callback = function(v)
+		if v:find("^1") then t1.autoBlockMethod = 1
+		elseif v:find("^2") then t1.autoBlockMethod = 2
+		elseif v:find("^3") then t1.autoBlockMethod = 3
+		elseif v:find("^4") then t1.autoBlockMethod = 4 end
+	end
+})
+vBlock:Slider({ Title = u16("Block Cooldown", t10.Primary, t10.Text), Desc = "Minimum delay between block fires", Step = 0.1,
+	Value = { Min = 0.1, Max = 2, Default = t3.blockCooldown },
+	Callback = function(v) t3.blockCooldown = v end })
+vBlock:Slider({ Title = u16("Block Range", t10.Primary, t10.Text), Desc = "Max distance to killer for block checks", Step = 1,
+	Value = { Min = 5, Max = 30, Default = t3.blockRange },
+	Callback = function(v) t3.blockRange = v end })
+vBlock:Divider({ Title = u16("ADVANCED", t10.Primary, t10.Text) })
+vBlock:Section({ Title = u16("METHOD FLAGS", t10.Primary, t10.Text) })
+vBlock:Toggle({ Title = u16("Animation Check", t10.Primary, t10.Text), Desc = "Use animation ID matching (method 1)", Value = true, Icon = "film", Callback = function(v) t1.blockOnAnimation = v end })
+vBlock:Toggle({ Title = u16("Hitbox Check", t10.Primary, t10.Text), Desc = "Use simulated hitbox overlap (method 2)", Value = true, Icon = "box", Callback = function(v) t1.blockOnHitbox = v end })
+vBlock:Toggle({ Title = u16("Distance Check", t10.Primary, t10.Text), Desc = "Use distance-based proactive block (method 3)", Value = true, Icon = "ruler", Callback = function(v) t1.blockOnDistance = v end })
+vBlock:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+vBlock:Paragraph({
+	Title = u16("How it works", t10.Primary, t10.Text),
+	Desc = "Method 1 mirrors Naiko's AutoBlock. Method 2 creates a temporary detection part. Methods 3/4 are proactive fallbacks. Uses RemoteEvent UseActorAbility.",
+	Image = "info",
+	ImageSize = 20,
+	Color = "White"
+})
+
+-- =====
+-- ESP (OPTIMIZED)
+-- =====
+local function CreateBillboard(p13, p14, p15, p16)
+	if not p13 or not p13:IsA("BasePart") then return nil end
+	local BillboardGui = p13:FindFirstChild("SNT_Billboard")
+	if BillboardGui then
+		local lbl = BillboardGui:FindFirstChild("TextLabel")
+		if lbl then
+			lbl.Text = p14 or ""
+			lbl.TextColor3 = p15 or Color3.fromRGB(255,255,255)
+		end
+		return BillboardGui
+	end
+	BillboardGui = Instance.new("BillboardGui")
+	BillboardGui.Name = "SNT_Billboard"
+	BillboardGui.Adornee = p13
+	BillboardGui.Size = UDim2.new(0, 200, 0, 50)
+	BillboardGui.StudsOffset = p16 or Vector3.new(0, 3, 0)
+	BillboardGui.AlwaysOnTop = true
+	BillboardGui.MaxDistance = t3.espMaxDistance
+	BillboardGui.Parent = p13
+	local TextLabel = Instance.new("TextLabel")
+	TextLabel.Name = "TextLabel"
+	TextLabel.Size = UDim2.new(1, 0, 1, 0)
+	TextLabel.BackgroundTransparency = 1
+	TextLabel.Text = p14 or ""
+	TextLabel.TextColor3 = p15 or Color3.fromRGB(255,255,255)
+	TextLabel.TextSize = t3.espTextSize or 14
+	TextLabel.Font = Enum.Font.GothamBold
+	TextLabel.TextStrokeTransparency = 0
+	TextLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+	TextLabel.Parent = BillboardGui
+	return BillboardGui
+end
+
+local function CreateHighlight(p17, p18)
+	if not p17 or not p17:IsA("Model") then return nil end
+	local Highlight = p17:FindFirstChild("SNT_Highlight")
+	if Highlight then
+		Highlight.FillColor = p18 or Color3.fromRGB(255,255,255)
+		Highlight.OutlineColor = p18 or Color3.fromRGB(255,255,255)
+		Highlight.FillTransparency = t3.highlightTransparency or 0.5
+		Highlight.OutlineTransparency = t3.highlightOutlineTransparency or 0
+		return Highlight
+	end
+	Highlight = Instance.new("Highlight")
+	Highlight.Name = "SNT_Highlight"
+	Highlight.Adornee = p17
+	Highlight.FillColor = p18 or Color3.fromRGB(255,255,255)
+	Highlight.OutlineColor = p18 or Color3.fromRGB(255,255,255)
+	Highlight.FillTransparency = t3.highlightTransparency or 0.5
+	Highlight.OutlineTransparency = t3.highlightOutlineTransparency or 0
+	Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	Highlight.Parent = p17
+	return Highlight
+end
+
+local function GetLocalRoot()
+	local c = game.Players.LocalPlayer.Character
+	return c and c:FindFirstChild("HumanoidRootPart")
+end
+
+local function RefreshSurvivors()
+	local map = espState.survivorMap
+	local seen = {}
+	local Players2 = workspace:FindFirstChild("Players")
+	local Survivors = Players2 and Players2:FindFirstChild("Survivors")
+	if Survivors then
+		for _, child in pairs(Survivors:GetChildren()) do
+			if child:IsA("Model") then
+				seen[child] = true
+				local username = child:GetAttribute("Username") or child.Name
+				if u8.SurvivorsHighlight then
+					local hl = map[child]
+					if not hl then
+						hl = { highlight = CreateHighlight(child, t11.Survivor), billboard = nil, head = nil }
+						map[child] = hl
+					end
+					if hl.highlight then
+						hl.highlight.FillTransparency = t3.highlightTransparency or 0.5
+						hl.highlight.OutlineTransparency = t3.highlightOutlineTransparency or 0
+					end
+				elseif map[child] and map[child].highlight then
+					map[child].highlight:Destroy()
+					map[child].highlight = nil
+				end
+				if u8.SurvivorsNameESP or u8.SurvivorsDistance then
+					local Head = child:FindFirstChild("Head")
+					if Head then
+						local entry = map[child]
+						if not entry then entry = { highlight = nil, billboard = nil, head = Head } map[child] = entry end
+						entry.head = Head
+						local lblText = (u8.SurvivorsNameESP and username or "")
+						local bb = entry.billboard
+						if not bb or not bb.Parent then
+							bb = CreateBillboard(Head, lblText, t11.Survivor, Vector3.new(0,4,0))
+							entry.billboard = bb
+						else
+							local l = bb:FindFirstChild("TextLabel")
+							if l and l.Text ~= lblText and not u8.SurvivorsDistance then l.Text = lblText end
+						end
+					end
+				elseif map[child] and map[child].billboard then
+					map[child].billboard:Destroy()
+					map[child].billboard = nil
+				end
+			end
+		end
+	end
+	for inst, entry in pairs(map) do
+		if not seen[inst] then
+			if entry.highlight then entry.highlight:Destroy() end
+			if entry.billboard then entry.billboard:Destroy() end
+			map[inst] = nil
+		end
+	end
+end
+
+local function RefreshKillers()
+	local map = espState.killerMap
+	local seen = {}
+	local Players3 = workspace:FindFirstChild("Players")
+	local Killers = Players3 and Players3:FindFirstChild("Killers")
+	if Killers then
+		for _, child in pairs(Killers:GetChildren()) do
+			if child:IsA("Model") then
+				seen[child] = true
+				local username = child:GetAttribute("Username") or child.Name
+				if u8.KillerHighlight then
+					local entry = map[child]
+					if not entry then entry = { highlight = nil, billboard = nil, head = nil } map[child] = entry end
+					if not entry.highlight then entry.highlight = CreateHighlight(child, t11.Killer) end
+					if entry.highlight then
+						entry.highlight.FillTransparency = t3.highlightTransparency or 0.5
+						entry.highlight.OutlineTransparency = t3.highlightOutlineTransparency or 0
+					end
+				elseif map[child] and map[child].highlight then
+					map[child].highlight:Destroy()
+					map[child].highlight = nil
+				end
+				if u8.KillerNameESP or u8.KillerDistance then
+					local Head = child:FindFirstChild("Head")
+					if Head then
+						local entry = map[child]
+						if not entry then entry = { highlight = nil, billboard = nil, head = Head } map[child] = entry end
+						entry.head = Head
+						local lblText = (u8.KillerNameESP and username or "")
+						if not entry.billboard or not entry.billboard.Parent then
+							entry.billboard = CreateBillboard(Head, lblText, t11.Killer, Vector3.new(0,4,0))
+						elseif not u8.KillerDistance then
+							local l = entry.billboard:FindFirstChild("TextLabel")
+							if l and l.Text ~= lblText then l.Text = lblText end
+						end
+					end
+				elseif map[child] and map[child].billboard then
+					map[child].billboard:Destroy()
+					map[child].billboard = nil
+				end
+			end
+		end
+	end
+	for inst, entry in pairs(map) do
+		if not seen[inst] then
+			if entry.highlight then entry.highlight:Destroy() end
+			if entry.billboard then entry.billboard:Destroy() end
+			map[inst] = nil
+		end
+	end
+end
+
+local function ScanItems()
+	local list = {}
+	local function recurse(node)
+		for _, child in pairs(node:GetChildren()) do
+			if child:IsA("Tool") then
+				table.insert(list, child)
+			elseif child:IsA("Folder") or child:IsA("Model") then
+				recurse(child)
+			end
+		end
+	end
+	if workspace then recurse(workspace) end
+	return list
+end
+
+local function RefreshItems(force)
+	local now = tick()
+	if not force and now - espState.lastItemScan < t3.espItemScanInterval then return end
+	espState.lastItemScan = now
+
+	local map = espState.itemMap
+	local seen = {}
+
+	for inst, entry in pairs(map) do
+		if not inst.Parent then
+			if entry.highlight then entry.highlight:Destroy() end
+			if entry.billboard then entry.billboard:Destroy() end
+			map[inst] = nil
+		end
+	end
+
+	if u8.ItemsHighlight or u8.ItemsNameESP or u8.ItemsDistance then
+		local list = ScanItems()
+		for _, tool in pairs(list) do
+			local handle = tool:FindFirstChild("Handle") or tool:FindFirstChildWhichIsA("BasePart")
+			if handle then
+				seen[tool] = true
+				local entry = map[tool]
+				if not entry then entry = { highlight = nil, billboard = nil, handle = handle } map[tool] = entry end
+				entry.handle = handle
+				if u8.ItemsHighlight then
+					if not entry.highlight then entry.highlight = CreateHighlight(tool, t11.Items) end
+					if entry.highlight then
+						entry.highlight.FillTransparency = t3.highlightTransparency or 0.5
+						entry.highlight.OutlineTransparency = t3.highlightOutlineTransparency or 0
+					end
+				elseif entry.highlight then
+					entry.highlight:Destroy()
+					entry.highlight = nil
+				end
+				if u8.ItemsNameESP or u8.ItemsDistance then
+					local lblText = (u8.ItemsNameESP and tool.Name or "")
+					if not entry.billboard or not entry.billboard.Parent then
+						entry.billboard = CreateBillboard(handle, lblText, t11.Items, Vector3.new(0,2,0))
+					elseif not u8.ItemsDistance then
+						local l = entry.billboard:FindFirstChild("TextLabel")
+						if l and l.Text ~= lblText then l.Text = lblText end
+					end
+				elseif entry.billboard then
+					entry.billboard:Destroy()
+					entry.billboard = nil
+				end
+			end
+		end
+	end
+
+	for inst, entry in pairs(map) do
+		if not seen[inst] then
+			if entry.highlight then entry.highlight:Destroy() end
+			if entry.billboard then entry.billboard:Destroy() end
+			map[inst] = nil
+		end
+	end
+end
+
+local function ScanGenerators()
+	local list = {}
+	local function recurse(node)
+		for _, child in pairs(node:GetChildren()) do
+			local n = child.Name:lower()
+			if n:find("generator") or n:find("gen") then
+				table.insert(list, child)
+			elseif child:IsA("Folder") or child:IsA("Model") then
+				recurse(child)
+			end
+		end
+	end
+	if workspace then recurse(workspace) end
+	return list
+end
+
+local function RefreshGenerators(force)
+	local now = tick()
+	if not force and now - espState.lastGenScan < t3.espGenScanInterval then return end
+	espState.lastGenScan = now
+
+	local map = espState.generatorMap
+	local seen = {}
+
+	for inst, entry in pairs(map) do
+		if not inst.Parent then
+			if entry.highlight then entry.highlight:Destroy() end
+			if entry.billboard then entry.billboard:Destroy() end
+			map[inst] = nil
+		end
+	end
+
+	if u8.GeneratorsHighlight or u8.GeneratorsNameESP or u8.GeneratorsDistance then
+		local list = ScanGenerators()
+		for _, gen in pairs(list) do
+			local part = gen:FindFirstChildWhichIsA("BasePart") or (gen:IsA("BasePart") and gen) or nil
+			if part then
+				seen[gen] = true
+				local entry = map[gen]
+				if not entry then entry = { highlight = nil, billboard = nil, part = part } map[gen] = entry end
+				entry.part = part
+				if u8.GeneratorsHighlight then
+					if not entry.highlight then entry.highlight = CreateHighlight(gen, t11.Generator) end
+					if entry.highlight then
+						entry.highlight.FillTransparency = t3.highlightTransparency or 0.5
+						entry.highlight.OutlineTransparency = t3.highlightOutlineTransparency or 0
+					end
+				elseif entry.highlight then
+					entry.highlight:Destroy()
+					entry.highlight = nil
+				end
+				if u8.GeneratorsNameESP or u8.GeneratorsDistance then
+					local lblText = (u8.GeneratorsNameESP and "Generator" or "")
+					if not entry.billboard or not entry.billboard.Parent then
+						entry.billboard = CreateBillboard(part, lblText, t11.Generator, Vector3.new(0,5,0))
+					elseif not u8.GeneratorsDistance then
+						local l = entry.billboard:FindFirstChild("TextLabel")
+						if l and l.Text ~= lblText then l.Text = lblText end
+					end
+				elseif entry.billboard then
+					entry.billboard:Destroy()
+					entry.billboard = nil
+				end
+			end
+		end
+	end
+
+	for inst, entry in pairs(map) do
+		if not seen[inst] then
+			if entry.highlight then entry.highlight:Destroy() end
+			if entry.billboard then entry.billboard:Destroy() end
+			map[inst] = nil
+		end
+	end
+end
+
+local distanceConnection = nil
+local function StartDistanceUpdater()
+	if distanceConnection then return end
+	distanceConnection = RunService.Heartbeat:Connect(function()
+		local now = tick()
+		if now - espState.lastDistanceUpdate < t3.espDistanceUpdateInterval then return end
+		espState.lastDistanceUpdate = now
+		local root = GetLocalRoot()
+		if not root then return end
+		local rp = root.Position
+		local maxD = t3.espMaxDistance
+
+		if u8.SurvivorsDistance or u8.SurvivorsNameESP then
+			for inst, entry in pairs(espState.survivorMap) do
+				if entry.billboard and entry.billboard.Parent and entry.head and entry.head.Parent then
+					local d = math.floor((entry.head.Position - rp).Magnitude)
+					local l = entry.billboard:FindFirstChild("TextLabel")
+					if l then
+						if d > maxD then
+							if l.TextTransparency ~= 1 then l.TextTransparency = 1 end
+						else
+							local uname = inst:GetAttribute("Username") or inst.Name
+							local base = u8.SurvivorsNameESP and uname or ""
+							local txt = u8.SurvivorsDistance and (base .. " [" .. d .. "m]") or base
+							if l.Text ~= txt then l.Text = txt end
+							if l.TextTransparency ~= 0 then l.TextTransparency = 0 end
+						end
+					end
+				end
+			end
+		end
+		if u8.KillerDistance or u8.KillerNameESP then
+			for inst, entry in pairs(espState.killerMap) do
+				if entry.billboard and entry.billboard.Parent and entry.head and entry.head.Parent then
+					local d = math.floor((entry.head.Position - rp).Magnitude)
+					local l = entry.billboard:FindFirstChild("TextLabel")
+					if l then
+						if d > maxD then
+							if l.TextTransparency ~= 1 then l.TextTransparency = 1 end
+						else
+							local uname = inst:GetAttribute("Username") or inst.Name
+							local base = u8.KillerNameESP and uname or ""
+							local txt = u8.KillerDistance and (base .. " [" .. d .. "m]") or base
+							if l.Text ~= txt then l.Text = txt end
+							if l.TextTransparency ~= 0 then l.TextTransparency = 0 end
+						end
+					end
+				end
+			end
+		end
+		if u8.ItemsDistance or u8.ItemsNameESP then
+			for inst, entry in pairs(espState.itemMap) do
+				if entry.billboard and entry.billboard.Parent and entry.handle and entry.handle.Parent then
+					local d = math.floor((entry.handle.Position - rp).Magnitude)
+					local l = entry.billboard:FindFirstChild("TextLabel")
+					if l then
+						if d > maxD then
+							if l.TextTransparency ~= 1 then l.TextTransparency = 1 end
+						else
+							local base = u8.ItemsNameESP and inst.Name or ""
+							local txt = u8.ItemsDistance and (base .. " [" .. d .. "m]") or base
+							if l.Text ~= txt then l.Text = txt end
+							if l.TextTransparency ~= 0 then l.TextTransparency = 0 end
+						end
+					end
+				end
+			end
+		end
+		if u8.GeneratorsDistance or u8.GeneratorsNameESP then
+			for inst, entry in pairs(espState.generatorMap) do
+				if entry.billboard and entry.billboard.Parent and entry.part and entry.part.Parent then
+					local d = math.floor((entry.part.Position - rp).Magnitude)
+					local l = entry.billboard:FindFirstChild("TextLabel")
+					if l then
+						if d > maxD then
+							if l.TextTransparency ~= 1 then l.TextTransparency = 1 end
+						else
+							local base = u8.GeneratorsNameESP and "Generator" or ""
+							local txt = u8.GeneratorsDistance and (base .. " [" .. d .. "m]") or base
+							if l.Text ~= txt then l.Text = txt end
+							if l.TextTransparency ~= 0 then l.TextTransparency = 0 end
+						end
+					end
+				end
+			end
+		end
+	end)
+end
+
+local function u62(force)
+	pcall(function()
+		RefreshSurvivors()
+		RefreshKillers()
+		RefreshItems(force)
+		RefreshGenerators(force)
+	end)
+end
+
+function cleanupAllEsp()
+	for _, map in pairs(espState) do
+		if type(map) == "table" then
+			for inst, entry in pairs(map) do
+				if type(entry) == "table" then
+					if entry.highlight then pcall(function() entry.highlight:Destroy() end) end
+					if entry.billboard then pcall(function() entry.billboard:Destroy() end) end
+				end
+				map[inst] = nil
+			end
+		end
+	end
+	if distanceConnection then
+		distanceConnection:Disconnect()
+		distanceConnection = nil
+	end
+end
+
+local espRefreshConnection = nil
+local function u64()
+	if espRefreshConnection then pcall(function() espRefreshConnection:Disconnect() end) end
+	espRefreshConnection = RunService.Heartbeat:Connect(function()
+		local now = tick()
+		if (t3.espUpdateInterval or 1) <= now - (t2.lastEspUpdate or 0) then
+			t2.lastEspUpdate = now
+			u62(false)
+		end
+	end)
+end
+
+v24:Divider({ Title = u16("HIGHLIGHT ESP", t10.Primary, t10.Text) })
+v24:Section({ Title = u16("HIGHLIGHT ESP", t10.Primary, t10.Text) })
+v24:Toggle({ Title = u16("Survivors Highlight", t10.Primary, t10.Text), Desc = "Highlight survivors with green outline", Value = false, Icon = "user",
+	Callback = function(p) u8.SurvivorsHighlight = p u62(true) end })
+v24:Toggle({ Title = u16("Killer Highlight", t10.Primary, t10.Text), Desc = "Highlight killer with red outline", Value = false, Icon = "skull",
+	Callback = function(p) u8.KillerHighlight = p u62(true) end })
+v24:Toggle({ Title = u16("Items Highlight", t10.Primary, t10.Text), Desc = "Highlight items with purple outline", Value = false, Icon = "package",
+	Callback = function(p) u8.ItemsHighlight = p u62(true) end })
+v24:Toggle({ Title = u16("Generators Highlight", t10.Primary, t10.Text), Desc = "Highlight generators with blue outline", Value = false, Icon = "zap",
+	Callback = function(p) u8.GeneratorsHighlight = p u62(true) end })
+
+v24:Divider({ Title = u16("NAME ESP", t10.Primary, t10.Text) })
+v24:Section({ Title = u16("NAME ESP", t10.Primary, t10.Text) })
+v24:Toggle({ Title = u16("Survivors Name ESP", t10.Primary, t10.Text), Desc = "Show survivor names", Value = false, Icon = "user",
+	Callback = function(p) u8.SurvivorsNameESP = p u62(true) end })
+v24:Toggle({ Title = u16("Killer Name ESP", t10.Primary, t10.Text), Desc = "Show killer name", Value = false, Icon = "skull",
+	Callback = function(p) u8.KillerNameESP = p u62(true) end })
+v24:Toggle({ Title = u16("Items Name ESP", t10.Primary, t10.Text), Desc = "Show item names", Value = false, Icon = "package",
+	Callback = function(p) u8.ItemsNameESP = p u62(true) end })
+v24:Toggle({ Title = u16("Generators Name ESP", t10.Primary, t10.Text), Desc = "Show generator names", Value = false, Icon = "zap",
+	Callback = function(p) u8.GeneratorsNameESP = p u62(true) end })
+
+v24:Divider({ Title = u16("DISTANCE ESP", t10.Primary, t10.Text) })
+v24:Section({ Title = u16("DISTANCE ESP", t10.Primary, t10.Text) })
+v24:Toggle({ Title = u16("Survivors Distance", t10.Primary, t10.Text), Desc = "Show distance to survivors", Value = false, Icon = "user",
+	Callback = function(p) u8.SurvivorsDistance = p u62(true) end })
+v24:Toggle({ Title = u16("Killer Distance", t10.Primary, t10.Text), Desc = "Show distance to killer", Value = false, Icon = "skull",
+	Callback = function(p) u8.KillerDistance = p u62(true) end })
+v24:Toggle({ Title = u16("Items Distance", t10.Primary, t10.Text), Desc = "Show distance to items", Value = false, Icon = "package",
+	Callback = function(p) u8.ItemsDistance = p u62(true) end })
+v24:Toggle({ Title = u16("Generators Distance", t10.Primary, t10.Text), Desc = "Show distance to generators", Value = false, Icon = "zap",
+	Callback = function(p) u8.GeneratorsDistance = p u62(true) end })
+
+v24:Divider({ Title = u16("ESP SETTINGS", t10.Primary, t10.Text) })
+v24:Section({ Title = u16("ESP PERFORMANCE", t10.Primary, t10.Text) })
+v24:Slider({ Title = u16("ESP Update Interval", t10.Primary, t10.Text), Desc = "Time between ESP refreshes (seconds)", Step = 0.1,
+	Value = { Min = 0.1, Max = 2, Default = t3.espUpdateInterval or 0.5 },
+	Callback = function(p) t3.espUpdateInterval = p u64() end })
+v24:Slider({ Title = u16("Distance Update Interval", t10.Primary, t10.Text), Desc = "How often distance text updates (seconds)", Step = 0.05,
+	Value = { Min = 0.05, Max = 1, Default = t3.espDistanceUpdateInterval },
+	Callback = function(p) t3.espDistanceUpdateInterval = p end })
+v24:Slider({ Title = u16("Item Scan Interval", t10.Primary, t10.Text), Desc = "How often to rescan for items (seconds)", Step = 0.1,
+	Value = { Min = 0.5, Max = 5, Default = t3.espItemScanInterval },
+	Callback = function(p) t3.espItemScanInterval = p end })
+v24:Slider({ Title = u16("Generator Scan Interval", t10.Primary, t10.Text), Desc = "How often to rescan for generators (seconds)", Step = 0.1,
+	Value = { Min = 0.5, Max = 5, Default = t3.espGenScanInterval },
+	Callback = function(p) t3.espGenScanInterval = p end })
+v24:Slider({ Title = u16("Max ESP Distance", t10.Primary, t10.Text), Desc = "Hide ESP beyond this distance (studs)", Step = 50,
+	Value = { Min = 100, Max = 2000, Default = t3.espMaxDistance },
+	Callback = function(p) t3.espMaxDistance = p end })
+v24:Button({ Title = u16("Refresh ESP", t10.Primary, t10.Accent), Desc = "Force update all ESP elements", Icon = "refresh-cw",
+	Callback = function() u62(true) end })
+v24:Button({ Title = u16("Clear All ESP", t10.Primary, t10.Accent), Desc = "Remove all ESP elements", Icon = "trash-2",
+	Callback = cleanupAllEsp })
+
+u64()
+StartDistanceUpdater()
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function(_)
+	cleanupAllEsp()
+	StartDistanceUpdater()
+	task.wait(1)
+	u62(true)
+end)
+game.Players.LocalPlayer.CharacterRemoving:Connect(function() cleanupAllEsp() end)
+game:GetService("RunService").Heartbeat:Connect(function()
+	if not workspace:FindFirstChild("Players") then cleanupAllEsp() end
+end)
+
+-- =====
+-- AIMBOT
+-- =====
+local function u65(p37, p38)
+	local t14 = {}
+	if not p37 then
+		if not p38 then
+			local Survivors = workspace.Players:FindFirstChild("Survivors")
+			if Survivors then
+				for _, child in pairs(Survivors:GetChildren()) do
+					if child:IsA("Model") and child:FindFirstChild("Humanoid") and child.Humanoid.Health > 0 then
+						table.insert(t14, child)
+					end
+				end
+			end
+		else
+			local Killers = workspace.Players:FindFirstChild("Killers")
+			if Killers then
+				for _, child in pairs(Killers:GetChildren()) do
+					if child:IsA("Model") and child:FindFirstChild("Humanoid") and child.Humanoid.Health > 0 then
+						table.insert(t14, child)
+					end
+				end
+			end
+		end
+	else
+		local Survivors = workspace.Players:FindFirstChild("Survivors")
+		if Survivors then
+			for _, child in pairs(Survivors:GetChildren()) do
+				if child:IsA("Model") and child:FindFirstChild("Humanoid") and child.Humanoid.Health > 0 then
+					table.insert(t14, child)
+				end
+			end
+		end
+	end
+	if #t14 ~= 0 then
+		local Character = game.Players.LocalPlayer.Character
+		if Character then
+			local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+			if HumanoidRootPart then
+				local v313 = nil
+				local huge = math.huge
+				for _, v in pairs(t14) do
+					local HumanoidRootPart2 = v:FindFirstChild("HumanoidRootPart")
+					if HumanoidRootPart2 then
+						local Magnitude = (HumanoidRootPart2.Position - HumanoidRootPart.Position).Magnitude
+						if Magnitude < huge then huge = Magnitude v313 = v end
+					end
+				end
+				return v313
+			end
+			return nil
+		end
+		return nil
+	end
+	return nil
+end
+
+local function u66(p39, p40)
+	if p39 and p39:FindFirstChild("HumanoidRootPart") then
+		local Character = game.Players.LocalPlayer.Character
+		if Character then
+			local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+			if HumanoidRootPart then
+				local HumanoidRootPart3 = p39.HumanoidRootPart
+				local timestamp4 = tick()
+				local v432 = p40 or 2
+				while v432 > tick() - timestamp4 and p39 and p39.Parent and p39:FindFirstChild("HumanoidRootPart") do
+					workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, HumanoidRootPart3.Position)
+					HumanoidRootPart.CFrame = CFrame.lookAt(HumanoidRootPart.Position, Vector3.new(HumanoidRootPart3.Position.X, HumanoidRootPart3.Position.Y, HumanoidRootPart3.Position.Z))
+					task.wait()
+				end
+				return
+			end
+			return
+		end
+		return
+	end
+end
+
+local function u67(p41, p42, p43)
+	if t5[p41] then t5[p41]:Disconnect() end
+	t5[p41] = game.ReplicatedStorage.Modules.Network.RemoteEvent.OnClientEvent:Connect(function(...)
+		local t15 = { ... }
+		if #t15 >= 2 and t15[1] == "UseActorAbility" then
+			local v501 = t15[2]
+			if table.find(p42, v501) then
+				local v502 = u65(string.find(p41, "Killer") ~= nil, p43)
+				if v502 then u66(v502, 1.5) end
+			end
+		end
+	end)
+end
+
+local function u68(p44, p45)
+	t8[p44] = p45
+	if not p45 then
+		if t5[p44] then t5[p44]:Disconnect() t5[p44] = nil end
+	else
+		local v278 = t9[p44]
+		if v278 then
+			if type(v278.targetKiller) ~= "table" then
+				u67(p44, v278.abilities, v278.targetKiller)
+			else
+				for k, v in pairs(v278.targetKiller) do
+					u67(p44, { k }, v)
+				end
+			end
+		end
+	end
+end
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
+	task.wait(1)
+	for k, v in pairs(t8) do
+		if v then u68(k, false) end
+	end
+end)
+
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Section({ Title = u16("SURVIVOR AIMBOT", t10.Primary, t10.Text) })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Toggle({ Title = u16("Chance Aimbot", t10.Primary, t10.Text), Desc = "Auto-aim for Chance's Shoot ability", Value = false, Icon = "crosshair",
+	Callback = function(p) u68("Chance", p) end })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Toggle({ Title = u16("Taph Aimbot", t10.Primary, t10.Text), Desc = "Auto-aim for Taph's SubspaceTripmine", Value = false, Icon = "crosshair",
+	Callback = function(p) u68("Taph", p) end })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Toggle({ Title = u16("Dusekkar Aimbot", t10.Primary, t10.Text), Desc = "Auto-aim for Dusekkar's abilities", Value = false, Icon = "crosshair",
+	Callback = function(p) u68("Dusekkar", p) end })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Toggle({ Title = u16("Guest1337 Aimbot", t10.Primary, t10.Text), Desc = "Auto-aim for Guest1337's abilities", Value = false, Icon = "crosshair",
+	Callback = function(p) u68("Guest1337", p) end })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Toggle({ Title = u16("Two Time Aimbot", t10.Primary, t10.Text), Desc = "Auto-aim for Two Time's abilities", Value = false, Icon = "crosshair",
+	Callback = function(p) u68("TwoTime", p) end })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Toggle({ Title = u16("Elliot Aimbot", t10.Primary, t10.Text), Desc = "Auto-aim for Elliot's ThrowPizza", Value = false, Icon = "crosshair",
+	Callback = function(p) u68("Elliot", p) end })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Toggle({ Title = u16("Shedletsky Aimbot", t10.Primary, t10.Text), Desc = "Auto-aim for Shedletsky's Slash", Value = false, Icon = "crosshair",
+	Callback = function(p) u68("Shedletsky", p) end })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Section({ Title = u16("KILLER AIMBOT", t10.Primary, t10.Text) })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Toggle({ Title = u16("Noli Aimbot", t10.Primary, t10.Text), Desc = "Auto-aim for Noli's abilities", Value = false, Icon = "crosshair",
+	Callback = function(p) u68("Noli", p) end })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Toggle({ Title = u16("1x1x1x1 Aimbot", t10.Primary, t10.Text), Desc = "Auto-aim for 1x1x1x1's abilities", Value = false, Icon = "crosshair",
+	Callback = function(p) u68("OneXOne", p) end })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Toggle({ Title = u16("c001kidd Aimbot", t10.Primary, t10.Text), Desc = "Auto-aim for c001kidd's abilities", Value = false, Icon = "crosshair",
+	Callback = function(p) u68("C001kidd", p) end })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Toggle({ Title = u16("John Doe Aimbot", t10.Primary, t10.Text), Desc = "Auto-aim for John Doe's abilities", Value = false, Icon = "crosshair",
+	Callback = function(p) u68("JohnDoe", p) end })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+v25:Toggle({ Title = u16("Slasher Aimbot", t10.Primary, t10.Text), Desc = "Auto-aim for Slasher's abilities", Value = false, Icon = "crosshair",
+	Callback = function(p) u68("Slasher", p) end })
+v25:Divider({ Title = u16("INFO", t10.Primary, t10.Text) })
+
+-- =====
+-- SURVIVOR TAB
+-- =====
+local function u69(p58, p59)
+	if p58 and p58:IsA("Instance") then return p58:FindFirstChild(p59) end
+	return nil
+end
+
+local function u70()
+	local LocalPlayer = game.Players.LocalPlayer
+	local v283 = u69(workspace.Players, "Survivors")
+	if v283 then
+		for _, child in pairs(v283:GetChildren()) do
+			if child:IsA("Model") then
+				local Username = child:GetAttribute("Username")
+				if Username and Username == LocalPlayer.Name then return true end
+			end
+		end
+		return false
+	end
+	return false
+end
+
+local function u75()
+	local LocalPlayer = game.Players.LocalPlayer
+	local Survivors = workspace.Players:FindFirstChild("Survivors")
+	if Survivors then
+		for _, child in pairs(Survivors:GetChildren()) do
+			if child:IsA("Model") then
+				local Username = child:GetAttribute("Username")
+				if Username and Username == LocalPlayer.Name then return child end
+			end
+		end
+		return nil
+	end
+	return nil
+end
+
+local function u86()
+	local v281 = u75()
+	if v281 then return v281.Name == "Chance" end
+	return false
+end
+
+local function u82()
+	if not (tick() - t2.lastFriedChickenTime < t3.friedChickenCooldown) then return true end
+	return false
+end
+
+local function u83()
+	if u82() then
+		if not pcall(function()
+			game.ReplicatedStorage.Modules.Network.RemoteEvent:FireServer(unpack({ "UseActorAbility", "FriedChicken" }))
+		end) then return false end
+		t2.lastFriedChickenTime = tick()
+		return true
+	end
+	return false
+end
+
+local function u84()
+	if not t1.autoFriedChicken then
+		t1.autoFriedChicken = true
+		t4.friedChickenConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.autoFriedChicken then
+				local v486 = u75()
+				if v486 then
+					local Humanoid = v486:FindFirstChildOfClass("Humanoid")
+					if Humanoid and not (Humanoid.Health <= 0) then
+						if Humanoid.Health / Humanoid.MaxHealth * 100 <= t3.friedChickenThreshold and u82() then
+							u83()
+						end
+						return
+					end
+					return
+				end
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u85()
+	if t1.autoFriedChicken then
+		t1.autoFriedChicken = false
+		if t4.friedChickenConnection then t4.friedChickenConnection:Disconnect() t4.friedChickenConnection = nil end
+		return
+	end
+end
+
+local function u87()
+	if not (tick() - t2.lastCoinFlipTime < t3.coinFlipCooldown) then return true end
+	return false
+end
+
+local function u88()
+	if u87() then
+		if not pcall(function()
+			game.ReplicatedStorage.Modules.Network.RemoteEvent:FireServer(unpack({ "UseActorAbility", "CoinFlip" }))
+		end) then return false end
+		t2.lastCoinFlipTime = tick()
+		return true
+	end
+	return false
+end
+
+local function u89()
+	if not t1.autoCoinFlip then
+		t1.autoCoinFlip = true
+		t4.coinFlipConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.autoCoinFlip then
+				if u70() and u86() then
+					if u87() then u88() end
+					return
+				end
+				stopAutoCoinFlip()
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u90()
+	if t1.autoCoinFlip then
+		t1.autoCoinFlip = false
+		if t4.coinFlipConnection then t4.coinFlipConnection:Disconnect() t4.coinFlipConnection = nil end
+		return
+	end
+end
+
+local function u91()
+	if not (tick() - t2.lastCloneTime < t3.cloneCooldown) then return true end
+	return false
+end
+
+local function u92()
+	if u91() then
+		if not pcall(function()
+			game.ReplicatedStorage.Modules.Network.RemoteEvent:FireServer(unpack({ "UseActorAbility", "Clone" }))
+		end) then return false end
+		t2.lastCloneTime = tick()
+		return true
+	end
+	return false
+end
+
+local function u93()
+	if not t1.autoClone then
+		t1.autoClone = true
+		local v360 = u75()
+		if v360 then
+			local Humanoid = v360:FindFirstChildOfClass("Humanoid")
+			if Humanoid then u5.lastHealth = Humanoid.Health end
+		end
+		t4.cloneConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.autoClone then
+				if u70() then
+					local v518 = u75()
+					if v518 then
+						local Humanoid = v518:FindFirstChildOfClass("Humanoid")
+						if Humanoid and not (Humanoid.Health <= 0) then
+							if Humanoid.Health < u5.lastHealth and u91() then u92() end
+							u5.lastHealth = Humanoid.Health
+							return
+						end
+						return
+					end
+					return
+				end
+				stopAutoClone()
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u94()
+	if t1.autoClone then
+		t1.autoClone = false
+		if t4.cloneConnection then t4.cloneConnection:Disconnect() t4.cloneConnection = nil end
+		return
+	end
+end
+
+local t18 = {
+	"rbxassetid://94067586317868",
+	"rbxassetid://107925328038675"
+}
+
+local function u96()
+	if not t4.autoBlockConnection then
+		t4.autoBlockConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.autoBlockActive and u5.isSurvivor and u5.killerModel then
+				local Character = game.Players.LocalPlayer.Character
+				if Character and Character:FindFirstChild("HumanoidRootPart") then
+					if not ((Character.HumanoidRootPart.Position - u5.killerModel.HumanoidRootPart.Position).Magnitude > 15) then
+						local Humanoid = u5.killerModel:FindFirstChildOfClass("Humanoid")
+						if Humanoid then
+							local Animator = Humanoid:FindFirstChildOfClass("Animator")
+							if Animator then
+								for _, v in pairs(Animator:GetPlayingAnimationTracks()) do
+									if table.find(t18, v.Animation.AnimationId) and u31("Block") then
+										game:GetService("ReplicatedStorage").Modules.Network.RemoteEvent:FireServer("UseActorAbility", "Block")
+										return
+									end
+								end
+							end
+						end
+						return
+					end
+					return
+				end
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u97()
+	if t4.autoBlockConnection then t4.autoBlockConnection:Disconnect() t4.autoBlockConnection = nil end
+end
+
+local function u98(p65)
+	local t19 = {}
+	local t20 = { workspace.Map.Ingame, workspace.Map.Ingame.Map, workspace.Map }
+	for _, v in pairs(t20) do
+		if v then
+			local p65_2 = v:FindFirstChild(p65)
+			if p65_2 and p65_2:FindFirstChild("ItemRoot") then table.insert(t19, p65_2) end
+			for _, descendant in pairs(v:GetDescendants()) do
+				if p65 == descendant.Name and descendant:FindFirstChild("ItemRoot") then table.insert(t19, descendant) end
+			end
+		end
+	end
+	return t19
+end
+
+local function u99(p66)
+	local ItemRoot = p66:FindFirstChild("ItemRoot")
+	if not ItemRoot or not ItemRoot:IsA("BasePart") then
+		for _, descendant in pairs(p66:GetDescendants()) do
+			if descendant:IsA("BasePart") then return descendant.Position end
+		end
+		return nil
+	end
+	return ItemRoot.Position
+end
+
+local function u100(p67)
+	if p67 then
+		local ItemRoot = p67:FindFirstChild("ItemRoot")
+		if ItemRoot then
+			local v244 = ItemRoot:FindFirstChildOfClass("ProximityPrompt") or p67:FindFirstChildOfClass("ProximityPrompt")
+			if not v244 or not v244:IsA("ProximityPrompt") then return false end
+			fireproximityprompt(v244)
+			return true
+		end
+		return false
+	end
+	return false
+end
+
+local function u101(p68)
+	local v416 = u99(p68)
+	if v416 then
+		local v417 = u75()
+		if v417 then
+			local HumanoidRootPart = v417:FindFirstChild("HumanoidRootPart")
+			if HumanoidRootPart then
+				local v419 = v416 + Vector3.new(0, 3, 0)
+				HumanoidRootPart.CFrame = CFrame.new(v419)
+				return true
+			end
+			return false
+		end
+		return false
+	end
+	return false
+end
+
+local function u102(p69)
+	if p69 and p69.Parent then
+		if not u101(p69) then return false end
+		task.wait(0.5)
+		local v448 = u100(p69)
+		return v448
+	end
+	return false
+end
+
+local function u103()
+	if not t1.autoGetItemsActive then
+		t1.autoGetItemsActive = true
+		t4.autoGetItemsConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.autoGetItemsActive then
+				if u70() then
+					local t21 = {}
+					for _, v in pairs({ "Medkit", "BloxyCola" }) do
+						local v552 = u98(v)
+						for _, v2 in pairs(v552) do table.insert(t21, v2) end
+					end
+					for _, v in pairs(t21) do
+						if t1.autoGetItemsActive and v and v.Parent then
+							u102(v)
+							task.wait(t3.itemPickupCooldown)
+						end
+					end
+					if #t21 == 0 then stopAutoGetItems() end
+					return
+				end
+				stopAutoGetItems()
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u104()
+	if t1.autoGetItemsActive then
+		t1.autoGetItemsActive = false
+		if t4.autoGetItemsConnection then t4.autoGetItemsConnection:Disconnect() t4.autoGetItemsConnection = nil end
+		return
+	end
+end
+
+local function u105()
+	if not t1.autoGetMedkitActive then
+		t1.autoGetMedkitActive = true
+		t4.autoGetMedkitConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.autoGetMedkitActive then
+				if u70() then
+					local v488 = u98("Medkit")
+					if not (#v488 > 0) then
+						stopAutoGetMedkit()
+					else
+						for _, v in pairs(v488) do
+							if t1.autoGetMedkitActive and v and v.Parent then u102(v) return end
+						end
+					end
+					return
+				end
+				stopAutoGetMedkit()
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u106()
+	if t1.autoGetMedkitActive then
+		t1.autoGetMedkitActive = false
+		if t4.autoGetMedkitConnection then t4.autoGetMedkitConnection:Disconnect() t4.autoGetMedkitConnection = nil end
+		return
+	end
+end
+
+local function u107()
+	if not t1.autoGetBloxyColaActive then
+		t1.autoGetBloxyColaActive = true
+		t4.autoGetBloxyColaConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.autoGetBloxyColaActive then
+				if u70() then
+					local v471 = u98("BloxyCola")
+					if not (#v471 > 0) then
+						stopAutoGetBloxyCola()
+					else
+						for _, v in pairs(v471) do
+							if t1.autoGetBloxyColaActive and v and v.Parent then u102(v) return end
+						end
+					end
+					return
+				end
+				stopAutoGetBloxyCola()
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u108()
+	if t1.autoGetBloxyColaActive then
+		t1.autoGetBloxyColaActive = false
+		if t4.autoGetBloxyColaConnection then t4.autoGetBloxyColaConnection:Disconnect() t4.autoGetBloxyColaConnection = nil end
+		return
+	end
+end
+
+local function u109()
+	if not t1.itemAuraActive then
+		t1.itemAuraActive = true
+		t4.itemAuraConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.itemAuraActive then
+				if u70() then
+					local v532 = u75()
+					if v532 then
+						local HumanoidRootPart = v532:FindFirstChild("HumanoidRootPart")
+						if HumanoidRootPart then
+							local t22 = {}
+							for _, v in pairs({ "Medkit", "BloxyCola" }) do
+								local v537 = u98(v)
+								for _, v3 in pairs(v537) do table.insert(t22, { item = v3, position = u99(v3) }) end
+							end
+							for _, v in pairs(t22) do
+								if v.position and (v.position - HumanoidRootPart.Position).Magnitude <= t3.itemAuraRange then
+									u100(v.item)
+									task.wait(0.1)
+								end
+							end
+							task.wait(0.5)
+							return
+						end
+						return
+					end
+					return
+				end
+				stopItemAura()
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u110()
+	if t1.itemAuraActive then
+		t1.itemAuraActive = false
+		if t4.itemAuraConnection then t4.itemAuraConnection:Disconnect() t4.itemAuraConnection = nil end
+		return
+	end
+end
+
+v26:Divider({ Title = u16("SURVIVOR SKILLS", t10.Primary, t10.Text) })
+v26:Section({ Title = u16("SURVIVOR SKILLS", t10.Primary, t10.Text) })
+v26:Toggle({ Title = u16("Auto Fried Chicken", t10.Primary, t10.Text), Desc = "Automatically use Fried Chicken when HP is low", Value = false, Icon = "drumstick",
+	Callback = function(p73)
+		if not p73 then u85() else
+			if not u70() then return false end
+			u84()
+		end
+	end })
+v26:Slider({ Title = u16("HP Threshold (%)", t10.Primary, t10.Text), Desc = "HP percentage to activate Fried Chicken",
+	Value = { Min = 10, Max = 90, Default = t3.friedChickenThreshold },
+	Callback = function(p74) t3.friedChickenThreshold = p74 end })
+v26:Toggle({ Title = u16("Auto Coin Flip", t10.Primary, t10.Text), Desc = "Automatically use Coin Flip ability on cooldown", Value = false, Icon = "eye",
+	Callback = function(p75)
+		if not p75 then u90() else
+			if not u70() then return false end
+			u89()
+		end
+	end })
+v26:Slider({ Title = u16("Coin Flip Cooldown", t10.Primary, t10.Text), Desc = "Time between Coin Flip uses (seconds)",
+	Value = { Min = 1, Max = 10, Default = t3.coinFlipCooldown },
+	Callback = function(p76) t3.coinFlipCooldown = tonumber(p76) or 5 end })
+v26:Toggle({ Title = u16("Auto Clone", t10.Primary, t10.Text), Desc = "Automatically use Clone when taking damage", Value = false, Icon = "copy",
+	Callback = function(p77)
+		if not p77 then u94() else
+			if not u70() then return false end
+			u93()
+		end
+	end })
+v26:Toggle({ Title = u16("Auto Block (Legacy)", t10.Primary, t10.Text), Desc = "Legacy auto block. For advanced methods, use AUTO BLOCK tab.", Value = false, Icon = "shield",
+	Callback = function(p78)
+		t1.autoBlockActive = p78
+		if not p78 then u97() else
+			if not u5.isSurvivor then return false end
+			u96()
+		end
+	end })
+
+v26:Divider({ Title = u16("AUTO ITEMS", t10.Primary, t10.Text) })
+v26:Section({ Title = u16("AUTO ITEMS", t10.Primary, t10.Text) })
+v26:Toggle({ Title = u16("Auto Get Items", t10.Primary, t10.Text), Desc = "Teleport to and pickup all items on the map", Value = false, Icon = "package",
+	Callback = function(p79)
+		if not p79 then u104() else
+			if not u70() then
+				u1:Notify({ Title = "Error", Content = "You must be a survivor to use this", Duration = 3 })
+				return false
+			end
+			u103()
+		end
+	end })
+v26:Toggle({ Title = u16("Auto Get Medkit", t10.Primary, t10.Text), Desc = "Teleport to and pickup medkits", Value = false, Icon = "heart",
+	Callback = function(p80)
+		if not p80 then u106() else
+			if not u70() then
+				u1:Notify({ Title = "Error", Content = "You must be a survivor to use this", Duration = 3 })
+				return false
+			end
+			u105()
+		end
+	end })
+v26:Toggle({ Title = u16("Auto Get Bloxy Cola", t10.Primary, t10.Text), Desc = "Teleport to and pickup Bloxy Cola", Value = false, Icon = "coffee",
+	Callback = function(p81)
+		if not p81 then u108() else
+			if not u70() then
+				u1:Notify({ Title = "Error", Content = "You must be a survivor to use this", Duration = 3 })
+				return false
+			end
+			u107()
+		end
+	end })
+v26:Toggle({ Title = u16("Item Aura", t10.Primary, t10.Text), Desc = "Auto pickup items when nearby", Value = false, Icon = "zap",
+	Callback = function(p82)
+		if not p82 then u110() else
+			if not u70() then
+				u1:Notify({ Title = "Error", Content = "You must be a survivor to use this", Duration = 3 })
+				return false
+			end
+			u109()
+		end
+	end })
+v26:Slider({ Title = u16("Item Aura Range", t10.Primary, t10.Text), Desc = "Distance for auto item pickup",
+	Value = { Min = 1, Max = 15, Default = t3.itemAuraRange },
+	Callback = function(p83) t3.itemAuraRange = p83 end })
+v26:Slider({ Title = u16("Pickup Cooldown", t10.Primary, t10.Text), Desc = "Time between item pickups (seconds)",
+	Value = { Min = 0.5, Max = 3, Default = t3.itemPickupCooldown },
+	Callback = function(p84) t3.itemPickupCooldown = p84 end })
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function(_)
+	if t1.autoGetItemsActive then pcall(u104) t1.autoGetItemsActive = false end
+	if t1.autoGetMedkitActive then pcall(u106) t1.autoGetMedkitActive = false end
+	if t1.autoGetBloxyColaActive then pcall(u108) t1.autoGetBloxyColaActive = false end
+	if t1.itemAuraActive then pcall(u110) t1.itemAuraActive = false end
+end)
+game.Players.LocalPlayer.CharacterRemoving:Connect(function()
+	if t1.autoGetItemsActive then u104() end
+	if t1.autoGetMedkitActive then u106() end
+	if t1.autoGetBloxyColaActive then u108() end
+	if t1.itemAuraActive then u110() end
+end)
+game:GetService("RunService").Heartbeat:Connect(function()
+	if t1.autoGetItemsActive and not u70() then u104() end
+	if t1.autoGetMedkitActive and not u70() then u106() end
+	if t1.autoGetBloxyColaActive and not u70() then u108() end
+	if t1.itemAuraActive and not u70() then u110() end
+end)
+game.Players.LocalPlayer.CharacterAdded:Connect(function(_)
+	if t1.autoFriedChicken then u85() end
+	if t1.autoCoinFlip then u90() end
+	if t1.autoClone then u94() end
+	if t1.autoBlockActive then u97() t1.autoBlockActive = false end
+end)
+game.Players.LocalPlayer.CharacterRemoving:Connect(function()
+	if t1.autoFriedChicken then u85() end
+	if t1.autoCoinFlip then u90() end
+	if t1.autoClone then u94() end
+	if t1.autoBlockActive then u97() end
+end)
+game:GetService("RunService").Heartbeat:Connect(function()
+	if t1.autoFriedChicken and not u70() then u85() end
+	if t1.autoCoinFlip and (not u70() or not u86()) then u90() end
+	if t1.autoClone and not u70() then u94() end
+end)
+
+-- =====
+-- KILLER TAB
+-- =====
+local function u111()
+	local Character = game.Players.LocalPlayer.Character
+	if Character then
+		local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+		if HumanoidRootPart then
+			local Survivors = workspace.Players:FindFirstChild("Survivors")
+			if Survivors then
+				local v342 = nil
+				local huge = math.huge
+				for _, child in pairs(Survivors:GetChildren()) do
+					if child:IsA("Model") and child:FindFirstChild("Humanoid") and child.Humanoid.Health > 0 then
+						local HumanoidRootPart4 = child:FindFirstChild("HumanoidRootPart")
+						if HumanoidRootPart4 then
+							local Magnitude = (HumanoidRootPart4.Position - HumanoidRootPart.Position).Magnitude
+							if Magnitude < huge then huge = Magnitude v342 = child end
+						end
+					end
+				end
+				return v342
+			end
+			return nil
+		end
+		return nil
+	end
+	return nil
+end
+
+local function u112(p87)
+	if p87 and p87:FindFirstChild("HumanoidRootPart") then
+		local Character = game.Players.LocalPlayer.Character
+		if Character then
+			local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+			if HumanoidRootPart then
+				local HumanoidRootPart5 = p87.HumanoidRootPart
+				if not t1.killAllTeleport then
+					if not t1.killAllFly then
+						Character.Humanoid:MoveTo(HumanoidRootPart5.Position)
+					else
+						if not t1.flying then u47() end
+						local Unit = (HumanoidRootPart5.Position - HumanoidRootPart.Position).Unit
+						Character.Humanoid:MoveTo(HumanoidRootPart.Position + Unit * 10)
+					end
+				else
+					local LookVector = HumanoidRootPart5.CFrame.LookVector
+					local v251 = HumanoidRootPart5.Position - LookVector * 2.7 + Vector3.new(0, 1.5, 0)
+					HumanoidRootPart.CFrame = CFrame.new(v251)
+					HumanoidRootPart.CFrame = CFrame.lookAt(v251, HumanoidRootPart5.Position)
+				end
+				return
+			end
+			return
+		end
+		return
+	end
+end
+
+local function u113()
+	local Character = game.Players.LocalPlayer.Character
+	if Character then
+		local CharacterName = Character.Name
+		if CharacterName ~= "Noli" then
+			if CharacterName ~= "c001kidd" then return "Slash" end
+			return "Punch"
+		end
+		return "Stab"
+	end
+	return "Slash"
+end
+
+local function u114(p88)
+	if not u5.skillCooldowns[p88] or not (tick() - u5.skillCooldowns[p88] < 5) then
+		game.ReplicatedStorage.Modules.Network.RemoteEvent:FireServer(unpack({ "UseActorAbility", p88 }))
+		u5.skillCooldowns[p88] = tick()
+		return true
+	end
+	return false
+end
+
+local function u115()
+	local v232 = u113()
+	game.ReplicatedStorage.Modules.Network.RemoteEvent:FireServer(unpack({ "UseActorAbility", v232 }))
+end
+
+local function u116()
+	if not t4.skillConnections.RagingPace then
+		t4.skillConnections.RagingPace = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.autoRagingPace then
+				local Character = game.Players.LocalPlayer.Character
+				if Character and Character.Name == "Slasher" then
+					u114("RagingPace")
+					task.wait(10)
+				end
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u117()
+	if not t4.skillConnections.UnstableEye then
+		t4.skillConnections.UnstableEye = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.autoUnstableEye then
+				local Character = game.Players.LocalPlayer.Character
+				if Character and Character.Name == "1x1x1x1" then
+					u114("UnstableEye")
+					task.wait(15)
+				end
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u118()
+	if not t4.skillConnections.PizzaDelivery then
+		t4.skillConnections.PizzaDelivery = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.autoPizzaDelivery then
+				local Character = game.Players.LocalPlayer.Character
+				if Character and Character.Name == "c001kidd" then
+					u114("PizzaDelivery")
+					task.wait(12)
+				end
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u119()
+	if not t4.skillConnections.Error404 then
+		t4.skillConnections.Error404 = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.auto404Error then
+				local Character = game.Players.LocalPlayer.Character
+				if Character and Character.Name == "JohnDoe" then
+					u114("404Error")
+					task.wait(8)
+				end
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u120()
+	for _, v in pairs(t4.skillConnections) do
+		if v then v:Disconnect() end
+	end
+	t4.skillConnections = {}
+end
+
+local function u121()
+	if not t1.killAllActive then
+		t1.killAllActive = true
+		local LocalPlayer = game.Players.LocalPlayer
+		t4.killAllConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.killAllActive then
+				if u5.currentTarget and (not u5.currentTarget.Parent or not u5.currentTarget:FindFirstChild("Humanoid") or u5.currentTarget.Humanoid.Health <= 0) then
+					u5.currentTarget = nil
+				end
+				if not u5.currentTarget then
+					u5.currentTarget = u111()
+					if not u5.currentTarget then return end
+				end
+				u112(u5.currentTarget)
+				local Character = LocalPlayer.Character
+				if Character and Character:FindFirstChild("HumanoidRootPart") and u5.currentTarget:FindFirstChild("HumanoidRootPart") then
+					local Magnitude = (u5.currentTarget.HumanoidRootPart.Position - Character.HumanoidRootPart.Position).Magnitude
+					if not t1.killAllTeleport then
+						if Magnitude < 15 then u115() end
+					else
+						u115()
+						task.wait(0.3)
+					end
+				end
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u122()
+	if t1.killAllActive then
+		t1.killAllActive = false
+		if t4.killAllConnection and type(t4.killAllConnection) == "userdata" then
+			pcall(function() t4.killAllConnection:Disconnect() end)
+			t4.killAllConnection = nil
+		end
+		u5.currentTarget = nil
+		local Character = game.Players.LocalPlayer.Character
+		if Character and Character:FindFirstChildOfClass("Humanoid") then
+			pcall(function() Character.Humanoid:MoveTo(Character.HumanoidRootPart.Position) end)
+		end
+		return
+	end
+end
+
+v27:Divider({ Title = u16("KILL ALL", t10.Primary, t10.Text) })
+v27:Section({ Title = u16("KILL ALL", t10.Primary, t10.Text) })
+v27:Toggle({ Title = u16("Kill All", t10.Primary, t10.Text), Desc = "Automatically hunt and kill all survivors", Value = false, Icon = "skull",
+	Callback = function(p89) if not p89 then u122() else u121() end end })
+v27:Toggle({ Title = u16("Teleport Mode", t10.Primary, t10.Text), Desc = "Teleport to survivors", Value = false, Icon = "move",
+	Callback = function(p90) t1.killAllTeleport = p90 if p90 then t1.killAllFly = false end end })
+v27:Button({ Title = u16("Force New Target", t10.Primary, t10.Accent), Desc = "Switch to nearest survivor", Icon = "refresh-cw",
+	Callback = function() u5.currentTarget = u111() end })
+v27:Divider({ Title = u16("KILL ALL", t10.Primary, t10.Text) })
+v27:Section({ Title = u16("AUTO SKILLS", t10.Primary, t10.Text) })
+v27:Toggle({ Title = u16("Auto Raging Pace", t10.Primary, t10.Text), Desc = "Auto use RagingPace for Slasher", Value = false, Icon = "zap",
+	Callback = function(p91) t1.autoRagingPace = p91 if not p91 then stopAutoSkill("RagingPace") else u116() end end })
+v27:Toggle({ Title = u16("Auto Unstable Eye", t10.Primary, t10.Text), Desc = "Auto use UnstableEye for 1x1x1x1", Value = false, Icon = "eye",
+	Callback = function(p92) t1.autoUnstableEye = p92 if not p92 then stopAutoSkill("UnstableEye") else u117() end end })
+v27:Toggle({ Title = u16("Auto Pizza Delivery", t10.Primary, t10.Text), Desc = "Auto use PizzaDelivery for c001kidd", Value = false, Icon = "package",
+	Callback = function(p93) t1.autoPizzaDelivery = p93 if not p93 then stopAutoSkill("PizzaDelivery") else u118() end end })
+v27:Toggle({ Title = u16("Auto 404 Error", t10.Primary, t10.Text), Desc = "Auto use 404Error for JohnDoe", Value = false, Icon = "axe",
+	Callback = function(p94) t1.auto404Error = p94 if not p94 then stopAutoSkill("Error404") else u119() end end })
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function(_)
+	if t1.killAllActive then pcall(u122) t1.killAllActive = false end
+	if t1.killerAuraActive then pcall(stopAura) t1.killerAuraActive = false end
+	if t1.slashAuraActive then pcall(stopAura) t1.slashAuraActive = false end
+	pcall(u120)
+	if t1.autoRepairActive then pcall(u80) t1.autoRepairActive = false end
+	if t1.autoFarmActive then pcall(uFarmStop) t1.autoFarmActive = false end
+	if t1.autoFarmTpActive then pcall(uFarmTpStop) t1.autoFarmTpActive = false end
+	if t1.autoFriedChicken then pcall(u85) t1.autoFriedChicken = false end
+	if t1.autoCoinFlip then pcall(u90) t1.autoCoinFlip = false end
+	if t1.autoClone then pcall(u94) t1.autoClone = false end
+	if t1.autoBlockActive then pcall(u97) t1.autoBlockActive = false end
+	if t1.flying then pcall(u48) t1.flying = false end
+	if t1.noclip and _G.NoclipLoop then
+		pcall(function() _G.NoclipLoop:Disconnect() end)
+		_G.NoclipLoop = nil
+		t1.noclip = false
+	end
+	if t1.infiniteJump and _G.InfiniteJumpConnection then
+		pcall(function() _G.InfiniteJumpConnection:Disconnect() end)
+		_G.InfiniteJumpConnection = nil
+		t1.infiniteJump = false
+	end
+	t2 = {
+		lastAuraUse = 0, lastPickupTime = 0, lastFriedChickenTime = 0,
+		lastCloneTime = 0, lastCoinFlipTime = 0, lastEspUpdate = 0,
+		teleportTime = 0, lastFarmAction = 0, lastFarmTpAction = 0, lastBlockFire = 0
+	}
+	u5 = {
+		autoGenDebounce = {}, repairDebounce = {}, pickedUpItems = {},
+		skillCooldowns = {}, lastHealth = 0, currentTarget = nil,
+		currentRepairGenerator = nil, killerModel = nil, isSurvivor = false,
+		currentFarmGenerator = nil, farmFixActive = false,
+		currentFarmTpGenerator = nil, farmTpFixActive = false,
+		farmTpTeleported = false, farmTpPromptActivated = false, farmTpTeleportTime = 0
+	}
+	task.wait(1)
+	pcall(u30)
+end)
+
+local function u123()
+	local v453 = nil
+	local huge = math.huge
+	local Character = game.Players.LocalPlayer.Character
+	if Character and Character:FindFirstChild("HumanoidRootPart") then
+		local Survivors = workspace.Players:FindFirstChild("Survivors")
+		if Survivors then
+			for _, child in pairs(Survivors:GetChildren()) do
+				if child:IsA("Model") and child:FindFirstChild("HumanoidRootPart") then
+					local Magnitude = (Character.HumanoidRootPart.Position - child.HumanoidRootPart.Position).Magnitude
+					if Magnitude < huge then huge = Magnitude v453 = child end
+				end
+			end
+			return v453, huge
+		end
+		return nil
+	end
+	return nil
+end
+
+local function u124(p96)
+	local timestamp5 = tick()
+	if not (timestamp5 - t2.lastAuraUse >= t3.auraCooldown) then return false end
+	game.ReplicatedStorage.Modules.Network.RemoteEvent:FireServer("UseActorAbility", p96)
+	t2.lastAuraUse = timestamp5
+	return true
+end
+
+local function u125()
+	if not t4.auraConnection then
+		t4.auraConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.killerAuraActive and u5.isKiller then
+				local v542, v543 = u123()
+				if v542 and not (v543 > t3.auraRange) then
+					local CharacterName = game.Players.LocalPlayer.Character.Name
+					local s2 = "Slash"
+					if CharacterName ~= "Noli" then
+						if CharacterName ~= "c001kidd" then
+							if CharacterName == "Guest1337" then s2 = "Punch" end
+						else
+							s2 = "Punch"
+						end
+					else
+						s2 = "Stab"
+					end
+					u124(s2)
+					return
+				end
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u126()
+	if not t4.auraConnection then
+		t4.auraConnection = game:GetService("RunService").Heartbeat:Connect(function()
+			if t1.slashAuraActive and u5.isKiller then
+				local v476, v477 = u123()
+				if v476 and not (v477 > t3.auraRange) then
+					u124("Slash")
+					return
+				end
+				return
+			end
+		end)
+		return
+	end
+end
+
+local function u127()
+	if t4.auraConnection and type(t4.auraConnection) == "userdata" then
+		pcall(function() t4.auraConnection:Disconnect() end)
+		t4.auraConnection = nil
+	end
+end
+
+local function u128(p97, p98)
+	u127()
+	if p98 then
+		if not u5.isKiller then return false end
+		if p97 ~= "killer" then
+			if p97 == "slash" then u126() end
+		else
+			u125()
+		end
+	end
+end
+
+v27:Divider({ Title = u16("", t10.Primary, t10.Text) })
+v27:Section({ Title = u16("KILLER AURA", t10.Primary, t10.Text) })
+v27:Toggle({ Title = u16("Killer Aura", t10.Primary, t10.Text), Desc = "Auto attack nearest survivor", Value = false, Icon = "target",
+	Callback = function(p99) t1.killerAuraActive = p99 if p99 then t1.slashAuraActive = false end u128("killer", p99) end })
+v27:Toggle({ Title = u16("Slash Aura", t10.Primary, t10.Text), Desc = "Slash aura for killers", Value = false, Icon = "sword",
+	Callback = function(p100) t1.slashAuraActive = p100 if p100 then t1.killerAuraActive = false end u128("slash", p100) end })
+v27:Slider({ Title = u16("Aura Range", t10.Primary, t10.Text), Desc = "Distance for auto attack",
+	Value = { Min = 5, Max = 30, Default = t3.auraRange },
+	Callback = function(p101) t3.auraRange = p101 end })
+v27:Slider({ Title = u16("Attack Cooldown", t10.Primary, t10.Text), Desc = "Attack Delay (seconds)",
+	Value = { Min = 0.5, Max = 3, Default = t3.auraCooldown },
+	Callback = function(p102) t3.auraCooldown = p102 end })
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function(_)
+	if t1.killerAuraActive then u127() t1.killerAuraActive = false end
+	if t1.slashAuraActive then u127() t1.slashAuraActive = false end
+	task.wait(1)
+	u30()
+end)
+game:GetService("RunService").Heartbeat:Connect(function()
+	if (t1.killerAuraActive or t1.slashAuraActive) and not u5.isKiller then
+		u127()
+		t1.killerAuraActive = false
+		t1.slashAuraActive = false
+	end
+end)
+
+-- =====
+-- SETTINGS / SERVER
+-- =====
+local u129 = v17.ConfigManager:CreateConfig("SNT_Config")
+
+v28:Divider({ Title = u16("ESP SETTINGS", t10.Primary, t10.Text) })
+v28:Section({ Title = u16("ESP VISUAL SETTINGS", t10.Primary, t10.Text) })
+
+local u130 = v28:Slider({
+	Title = u16("ESP Text Size", t10.Primary, t10.Text),
+	Desc = "Adjust the size of ESP text labels",
+	Step = 1,
+	Value = { Min = 8, Max = 24, Default = 14 },
+	Callback = function(p104) t3.espTextSize = p104 u62(true) end
+})
+local u131 = v28:Slider({
+	Title = u16("Highlight Transparency", t10.Primary, t10.Text),
+	Desc = "Adjust transparency of ESP highlights",
+	Step = 0.05,
+	Value = { Min = 0, Max = 1, Default = 0.5 },
+	Callback = function(p105) t3.highlightTransparency = p105 u62(true) end
+})
+local u132 = v28:Slider({
+	Title = u16("Highlight Outline", t10.Primary, t10.Text),
+	Desc = "Adjust outline thickness of ESP highlights",
+	Step = 0.05,
+	Value = { Min = 0, Max = 1, Default = 0 },
+	Callback = function(p106) t3.highlightOutlineTransparency = p106 u62(true) end
+})
+
+v28:Divider({ Title = u16("CONFIGURATION SYSTEM", t10.Primary, t10.Text) })
+v28:Section({ Title = u16("CONFIG MANAGEMENT", t10.Primary, t10.Text) })
+v28:Button({ Title = u16("Save Configuration", t10.Primary, t10.Accent), Desc = "Save current settings to config", Icon = "save",
+	Callback = function()
+		u129:Save()
+		u1:Notify({ Title = "Configuration", Content = "Settings saved successfully!", Duration = 3 })
+	end })
+v28:Button({ Title = u16("Load Configuration", t10.Primary, t10.Accent), Desc = "Load settings from config", Icon = "download",
+	Callback = function()
+		u129:Load()
+		u1:Notify({ Title = "Configuration", Content = "Settings loaded successfully!", Duration = 3 })
+	end })
+v28:Button({ Title = u16("Reset Configuration", t10.Primary, t10.Accent), Desc = "Reset to default settings", Icon = "refresh-cw",
+	Callback = function()
+		t3.espTextSize = 14
+		t3.highlightTransparency = 0.5
+		t3.highlightOutlineTransparency = 0
+		u130:Set(14) u131:Set(0.5) u132:Set(0)
+		u62(true)
+		u1:Notify({ Title = "Configuration", Content = "Settings reset to default!", Duration = 3 })
+	end })
+
+u29:Divider({ Title = u16("SERVER FUNCTIONS", t10.Primary, t10.Text) })
+u29:Section({ Title = u16("SERVER MANAGEMENT", t10.Primary, t10.Text) })
+u29:Button({ Title = u16("Rejoin to Server", t10.Primary, t10.Accent), Desc = "Reconnect to the current game server", Icon = "refresh-cw",
+	Callback = function()
+		local ok, result = pcall(function()
+			game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, game.Players.LocalPlayer)
+		end)
+		if not ok then
+			u1:Notify({ Title = "Error", Content = "Failed to rejoin server: " .. tostring(result), Duration = 5, Type = "error" })
+		end
+	end })
+u29:Button({ Title = u16("Server Hop", t10.Primary, t10.Accent), Desc = "Join a random server for this game", Icon = "shuffle",
+	Callback = function()
+		u1:Notify({ Title = "Server Hop", Content = "Searching for random server...", Duration = 3 })
+		local v173 = (function()
+			local ok, result = pcall(function()
+				return game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
+			end)
+			if ok and result and result.data then
+				local t23 = {}
+				for _, v in ipairs(result.data) do
+					if v.playing < v.maxPlayers and v.id ~= game.JobId then table.insert(t23, v) end
+				end
+				if #t23 > 0 then return t23[math.random(1, #t23)].id end
+			end
+			return nil
+		end)()
+		if not v173 then
+			u1:Notify({ Title = "Error", Content = "No available servers found", Duration = 5, Type = "error" })
+		else
+			game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, v173, game.Players.LocalPlayer)
+		end
+	end })
+u29:Button({ Title = u16("Teleport to Smaller Server", t10.Primary, t10.Accent), Desc = "Join a server with fewer players", Icon = "users",
+	Callback = function()
+		u1:Notify({ Title = "Server Search", Content = "Looking for server with fewer players...", Duration = 3 })
+		local v372 = (function()
+			local ok, result = pcall(function()
+				return game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
+			end)
+			if ok and result and result.data then
+				table.sort(result.data, function(p107, p108) return p107.playing < p108.playing end)
+				local v522 = #game.Players:GetPlayers()
+				for _, v in ipairs(result.data) do
+					if v522 > v.playing and v.id ~= game.JobId and v.playing > 0 then return v.id end
+				end
+				for _, v in ipairs(result.data) do
+					if v.id ~= game.JobId and v.playing > 0 then return v.id end
+				end
+			end
+			return nil
+		end)()
+		if not v372 then
+			u1:Notify({ Title = "Error", Content = "No suitable servers found", Duration = 5, Type = "error" })
+		else
+			game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, v372, game.Players.LocalPlayer)
+		end
+	end })
+
+u29:Divider({ Title = u16("SERVER INFO", t10.Primary, t10.Text) })
+u29:Section({ Title = u16("CURRENT SERVER", t10.Primary, t10.Text) })
+local u133 = u29:Paragraph({ Title = u16("Server ID: " .. game.JobId, t10.Primary, t10.Text), Desc = "Current server information", Image = "server", ImageSize = 20, Color = "White" })
+local u134 = u29:Paragraph({ Title = u16("Players: " .. #game.Players:GetPlayers() .. "/" .. game.Players.MaxPlayers, t10.Primary, t10.Text), Desc = "Current player count", Image = "users", ImageSize = 20, Color = "White" })
+
+local function u135()
+	u133:SetTitle(u16("Server ID: " .. game.JobId, t10.Primary, t10.Text))
+	u134:SetTitle(u16("Players: " .. #game.Players:GetPlayers() .. "/" .. game.Players.MaxPlayers, t10.Primary, t10.Text))
+end
+
+spawn(function() while wait(10) do u135() end end)
+u29:Button({ Title = u16("Refresh Server Info", t10.Primary, t10.Accent), Desc = "Update current server information", Icon = "refresh-cw", Callback = u135 })
+
+game:GetService("TeleportService").TeleportInitFailed:Connect(function(_, _, p111)
+	u1:Notify({ Title = "Teleport Failed", Content = "Reason: " .. tostring(p111), Duration = 5, Type = "error" })
+end)
+game:GetService("TeleportService").LocalPlayerTeleportFailed:Connect(function(_, p113)
+	u1:Notify({ Title = "Teleport Failed", Content = "Reason: " .. tostring(p113), Duration = 5, Type = "error" })
+end)
+
+u129:Register("EspTextSize", u130)
+u129:Register("HighlightTransparency", u131)
+u129:Register("HighlightOutline", u132)
+
+for k, v in pairs({}) do
+	u129:Register(k, v)
+end
+
+u129:Register("NoclipToggle", v23:FindFirstChild("NoclipToggle"))
+u129:Register("InfiniteJumpToggle", v23:FindFirstChild("InfiniteJumpToggle"))
+u129:Register("FlyToggle", v23:FindFirstChild("FlyToggle"))
+u129:Register("InfiniteStaminaToggle", v23:FindFirstChild("InfiniteStaminaToggle"))
+u129:Register("AntiStunToggle", v23:FindFirstChild("AntiStunToggle"))
+u129:Register("AntiSlowToggle", v23:FindFirstChild("AntiSlowToggle"))
+u129:Register("AutoFriedChickenToggle", v26:FindFirstChild("AutoFriedChickenToggle"))
+u129:Register("AutoCoinFlipToggle", v26:FindFirstChild("AutoCoinFlipToggle"))
+u129:Register("AutoCloneToggle", v26:FindFirstChild("AutoCloneToggle"))
+u129:Register("AutoBlockToggle", v26:FindFirstChild("AutoBlockToggle"))
+u129:Register("KillAllToggle", v27:FindFirstChild("KillAllToggle"))
+u129:Register("TeleportModeToggle", v27:FindFirstChild("TeleportModeToggle"))
+u129:Register("KillerAuraToggle", v27:FindFirstChild("KillerAuraToggle"))
+u129:Register("SlashAuraToggle", v27:FindFirstChild("SlashAuraToggle"))
+
+for k, _ in pairs(t8) do
+	local v142 = k .. "AimbotToggle"
+	u129:Register(v142, v25:FindFirstChild(v142))
+end
+
+task.wait(1)
+u129:Load()
